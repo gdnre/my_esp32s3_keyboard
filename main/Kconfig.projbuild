@@ -1,0 +1,7 @@
+menu "my device main menu"
+    config MY_DEVICE_IS_RECEIVER
+        bool "将设备切换为接收器模式"
+        default n
+        help
+            勾选后，设备将编译接收器模式代码，一些行为与键盘设备不同，比如强制开启espnow、usb，关闭屏幕等
+endmenu

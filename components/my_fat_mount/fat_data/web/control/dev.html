@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设备配置管理</title>
+    <link rel="stylesheet" href="/web/control/dev.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>设备配置管理</h1>
+            <div class="server-controls">
+                <input type="text" id="host-input"  placeholder="服务器地址">
+                <button id="fetch-config-btn">获取最新配置</button>
+                <span class="help-icon" title="输入框中显示当前访问的主机地址，可手动更改，更改后请点击获取最新配置按钮">?</span>
+            </div>
+            <div class="server-status">
+                <span id="status-indicator">●</span>
+                <span id="status-text">离线</span>
+                <button id="check-status-btn">检查连接</button>
+            </div>
+        </header>
+
+        <main id="config-container">
+            <!-- 配置项将通过JS动态生成 -->
+            <div class="loading">正在加载配置...</div>
+        </main>
+
+        <div class="control-actions">
+            <button id="save-btn" disabled>应用配置</button>
+            <span class="help-icon" title="应用配置：会重启设备，应用当前的配置，但不将配置保存为文件">?</span>
+            <button id="reset-btn" disabled>恢复默认</button>
+            <span class="help-icon" title="恢复默认：恢复已更改的配置，并非恢复到设备的默认配置，而是恢复到上次从设备获取到的配置">?</span>
+            <div class="config-path">
+                <input type="text" id="config-path" value="/.configs/userNvsCfg.json" placeholder="输入配置保存路径">
+                <button id="upload-btn" disabled>应用并上传配置</button>
+                <span class="help-icon" title="会重启设备，应用配置，并将配置保存到目标文件">?</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 结果弹窗 -->
+    <div id="result-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>操作结果</h3>
+            <pre id="result-content"></pre>
+            <button id="close-modal">关闭</button>
+        </div>
+    </div>
+
+    <script src="/web/control/dev.js"></script>
+</body>
+
+</html>

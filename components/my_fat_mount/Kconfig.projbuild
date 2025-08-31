@@ -1,0 +1,16 @@
+menu "My Fat Mount Configuration"
+    config MY_FAT_USE_CUSTOM_SETTING
+        bool "使用自定义的fat base path和分区label/name"
+        default n
+
+    config MY_FAT_CUSTOM_PARTITION_LABEL
+        string "自定义的分区label/name，默认会自动获取第一个fat分区label"
+        default "ffat"
+        depends on MY_FAT_USE_CUSTOM_SETTING
+
+    config MY_FAT_CUSTOM_BASE_PATH
+        string "自定义的fat base path，默认为/spiflash，如果用SD卡，可以改为/sdcard"
+        default "/spiflash"
+        depends on MY_FAT_USE_CUSTOM_SETTING
+endmenu
+

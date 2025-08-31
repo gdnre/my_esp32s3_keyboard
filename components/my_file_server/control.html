@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32S3键盘导航页面</title>
+    <link rel="stylesheet" href="/api/fileget?path=/web/control/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>页面导航</h1>
+            <div class="server-status">
+                <span id="status-indicator">●</span>
+                <span id="status-text">离线</span>
+                <button id="check-status-btn">检查服务器状态</button>
+                <div class="help-tooltip">
+                    <span>?</span>
+                    <span class="tooltip-text">如果服务器在线，会定期自动检查连接状态，点击会马上检查。如果要保持连接，请将键盘连接电源防止睡眠</span>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section class="default-links">
+                <h2>默认页面</h2>
+                <ul id="default-nav"></ul>
+            </section>
+
+            <section class="dynamic-links">
+                <h2>其他页面</h2>
+                <button id="scan-pages-btn">扫描其他页面</button>
+                <div class="help-tooltip">
+                    <span>?</span>
+                    <span class="tooltip-text">点击查找/web/及其第一级子目录内的index.html文件</span>
+                </div>
+                <p id="scan-error" class="error"></p>
+                <ul id="dynamic-nav"></ul>
+            </section>
+        </main>
+    </div>
+    <script src="/api/fileget?path=/web/control/script.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,24 @@
+dependencies:
+  idf:
+    version: '>5.3.0'
+  k0i05/esp_type_utils:
+    version: '>=0.0.1'
+description: ESP32 espressif IoT development framework (esp-idf) compatible component
+  for the Texas Instruments INA226 I2C voltage, current and power sensor.
+license: MIT
+maintainers:
+- Eric Gionet <gionet.c.eric@gmail.com>
+repository: https://github.com/K0I05/ESP32-S3_ESP-IDF_COMPONENTS.git
+tags:
+- ina226
+- power
+- current
+- voltage
+- i2c
+- espidf
+- esp32
+targets:
+- esp32
+- esp32s3
+url: https://github.com/K0I05/ESP32-S3_ESP-IDF_COMPONENTS/tree/main/components/peripherals/i2c/esp_ina226
+version: 1.2.6

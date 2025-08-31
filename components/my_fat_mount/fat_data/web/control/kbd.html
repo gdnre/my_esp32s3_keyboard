@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>键盘配置</title>
+    <link rel="stylesheet" href="kbd.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>键盘配置管理</h1>
+            <div class="server-controls">
+                <input type="text" id="host-input" value="" placeholder="服务器地址">
+                <button id="fetch-config-btn">获取最新配置</button>
+            </div>
+            <div class="server-status">
+                <span id="status-indicator">●</span>
+                <span id="status-text">离线</span>
+                <button id="check-status-btn">检查连接</button>
+            </div>
+        </header>
+
+        <main id="config-container">
+            <div class="loading">正在加载键盘配置...</div>
+        </main>
+
+        <div class="control-actions">
+            <button id="save-btn" disabled>保存配置</button>
+            <button id="reset-btn" disabled>恢复默认</button>
+        </div>
+    </div>
+
+    <script src="kbd.js"></script>
+</body>
+</html>

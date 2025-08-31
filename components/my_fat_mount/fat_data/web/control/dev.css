@@ -1,0 +1,385 @@
+/* 基础样式 */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.54;
+    margin: 0;
+    padding: 10px;
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+h1 {
+    margin: 10px auto;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 服务器状态 */
+.server-status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+#status-indicator {
+    font-size: 20px;
+    margin-left: 7px;
+}
+
+.online {
+    color: #4CAF50;
+}
+
+.offline {
+    color: #F44336;
+}
+
+/* 配置项分组 */
+.config-group {
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 7px;
+}
+
+.config-group h2 {
+    margin-top: 0;
+    color: #2196F3;
+}
+
+.config-item {
+    margin: 3px auto 3px auto;
+    padding-left: 15px;
+    transition: border-color 0.2s;
+}
+
+.config-item.out-of-range {
+    border-left: 3px solid #ff4444;
+}
+
+.config-label {
+    display: block;
+    margin-top: 3px;
+    font-weight: bold;
+}
+
+/* 不同类型的控件样式 */
+.control-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+input[type="text"] {
+    padding: 5px;
+    border: 1px solid #ddd;
+    width: 50%;
+    border-radius: 4px;
+    min-width: 70px;
+}
+
+input[type="number"] {
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 25%;
+    min-width: 60px;
+}
+
+input[type="range"] {
+    flex-grow: 1;
+    width: 90%;
+    flex-shrink: 0;
+    min-width: 150px;
+}
+
+select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-width: 220px;
+}
+
+.control-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+/* 开关控件 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 30px;
+    height: 15px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .2s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 11px;
+    width: 11px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .2s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: #2196F3;
+}
+
+input:checked+.slider:before {
+    transform: translateX(15px);
+}
+
+/* 提示信息 */
+.range-hint {
+    color: #ff4444;
+    font-size: 0.8em;
+    margin-top: 4px;
+}
+
+.unit-label {
+    color: #777;
+    margin-left: 0px;
+}
+
+/* 操作按钮区 */
+.control-actions {
+    margin-top: 1px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+    align-items: center;
+    justify-content: center;
+}
+
+.config-path {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.config-path input {
+    width: 250px;
+}
+
+button {
+    padding: 5px 10px;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+}
+
+/* 加载状态 */
+.loading {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+}
+
+/* 模态框 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 80%;
+    max-height: 80%;
+    overflow: auto;
+}
+
+.hidden {
+    display: none;
+}
+
+#result-content {
+    white-space: pre-wrap;
+    background: #f5f5f5;
+    padding: 10px;
+    border-radius: 4px;
+    max-height: 300px;
+    overflow: auto;
+}
+
+/* 主机名管理框 */
+.server-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+.server-controls input {
+    flex-grow: 1;
+    max-width: 300px;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-left: 3px;
+}
+
+/* 鼠标移到配置名上方显示提示框 */
+/* 新增Tooltip样式 */
+.config-label {
+    position: relative;
+    display: inline-block;
+}
+
+.config-label:hover::after {
+    content: attr(data-config-key);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    white-space: nowrap;
+    z-index: 10;
+    margin-bottom: 5px;
+}
+
+.config-label:hover::before {
+    content: "";
+    position: absolute;
+    bottom: calc(100% - 5px);
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+}
+
+/* 移动端适配 - 只有支持hover的设备才显示tooltip */
+/* @media (hover: hover) {
+    .config-label:hover::after {
+        content: "配置键: " attr(data-config-key);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8em;
+        white-space: nowrap;
+        z-index: 10;
+        margin-bottom: 5px;
+    }
+
+    .config-label:hover::before {
+        content: "";
+        position: absolute;
+        bottom: calc(100% - 5px);
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 5px;
+        border-style: solid;
+        border-color: #333 transparent transparent transparent;
+    }
+} */
+
+/* === 分类折叠标题 === */
+.config-group-header {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1.2em;
+    color: #2196F3;
+    margin-bottom: 1px;
+    font-weight: bold;
+    padding: 5px;
+}
+
+.config-group-header::after {
+    content: "▼";
+    font-size: 0.9em;
+    margin-left: auto;
+    transition: transform 0.2s;
+    transform: scaleX(1.3);
+}
+
+.config-group.collapsed .config-group-header::after {
+    transform: rotate(90deg) scaleX(1.3);
+}
+
+.config-group-content {
+    transition: all 0.2s ease;
+}
+
+.config-group.collapsed .config-group-content {
+    display: none;
+}
+
+/* === 帮助图标样式改进 === */
+.help-icon {
+    width: 16px;
+    height: 16px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    margin-left: 6px;
+    cursor: help;
+    transition: background-color 0.2s;
+}
+
+.help-icon:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+}

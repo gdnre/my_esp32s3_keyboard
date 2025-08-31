@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ESP32 File Server</title>
+    <link rel="stylesheet" href="/web/fileserver/style.css">
+    <script src="/web/fileserver/script.js"></script>
+    <link rel="icon" type="image/x-icon" href="/web/favicon.ico">
+</head>
+
+<body>
+    <table class="fixed" border="0">
+        <col width="50%" />
+        <col width="40%" />
+        <tr>
+            <td>
+                <h2>ESP32 File Server</h2>
+            </td>
+            <td>
+                <table border="0">
+                    <tr>
+                        <td>
+                            <label for="newfile">Upload a file</label>
+                        </td>
+                        <td colspan="2">
+                            <input id="newfile" type="file" onchange="setpath()" style="width:100%;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="filepath">Set path on server</label>
+                        </td>
+                        <td>
+                            <input id="filepath" type="text" style="width:100%;">
+                        </td>
+                        <td>
+                            <button id="upload" type="button" onclick="upload()">Upload</button>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <table class="fixed" border="1">
+        <col style="width: 40%;" />
+        <col />
+        <col />
+        <col style="width: 20%;" />
+        <thead>
+            <tr>
+                <th colspan="4" id="pathLinkRow">Need to request data
+                </th>
+            </tr>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Size (Bytes)</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody id="fileList"></tbody>
+    </table>
+</body>
+
+</html>

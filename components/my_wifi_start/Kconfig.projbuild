@@ -1,0 +1,136 @@
+menu "My Wifi Start Configuration"
+
+    menu "My SoftAP Configuration"
+        comment "SoftAP Configuration"
+
+        config ESP_WIFI_AP_SSID
+            string "WiFi AP SSID"
+            default "NONE"
+            help
+                SSID (network name) of the AP for the example to connect to. 配置为NONE时，使用默认名esp32_bcde，bcde为芯片mac后2Byte的16进制字符串。
+
+        config ESP_WIFI_AP_PASSWORD
+            string "WiFi AP Password"
+            default "esp32passwd"
+            help
+                WiFi password of the AP for the example to use.默认值esp32passwd
+
+        config ESP_WIFI_AP_CHANNEL
+            int "WiFi AP Channel"
+            range 1 14
+            default 1
+            help
+                WiFi channel (network channel) of the AP for the example to use.默认值1
+
+        config ESP_MAX_STA_CONN_AP
+            int "Maximal STA connections"
+            default 4
+            help
+                Max number of the STA connects to AP.默认值4
+    endmenu
+
+    menu "My STA Configuration"
+        config ESP_WIFI_STA_SSID
+            string "WiFi STA SSID"
+            default "NONE"
+            help
+                SSID (network name) , 要连接的wifi名。默认值NONE
+
+        config ESP_WIFI_STA_PASSWORD
+            string "WiFi STA Password"
+            default "esp32passwd"
+            help
+                WiFi password.
+
+        config ESP_STA_MAXIMUM_RETRY
+            int "Maximum retry"
+            default 5
+            help
+                Set the Maximum retry to avoid station reconnecting to the AP unlimited when the AP is really inexistent.默认值5，根据实现，实际重试次数可能是5*5
+
+        choice ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD
+            prompt "WiFi Scan auth mode threshold"
+            default ESP_WIFI_AUTH_WPA_WPA2_PSK
+            help
+                仅支持WPA/WPA2，要支持其它请参考官方例程修改实现。
+                The weakest authmode to accept in the scan mode.
+                This value defaults to ESP_WIFI_AUTH_WPA2_PSK incase password is present and ESP_WIFI_AUTH_OPEN is used.
+                Please select ESP_WIFI_AUTH_WEP/ESP_WIFI_AUTH_WPA_PSK incase AP is operating in WEP/WPA mode.
+
+            config ESP_WIFI_AUTH_OPEN
+                bool "OPEN"
+            config ESP_WIFI_AUTH_WEP
+                bool "WEP"
+            config ESP_WIFI_AUTH_WPA_PSK
+                bool "WPA PSK"
+            config ESP_WIFI_AUTH_WPA2_PSK
+                bool "WPA2 PSK"
+            config ESP_WIFI_AUTH_WPA_WPA2_PSK
+                bool "WPA/WPA2 PSK"
+            config ESP_WIFI_AUTH_WPA3_PSK
+                bool "WPA3 PSK"
+            config ESP_WIFI_AUTH_WPA2_WPA3_PSK
+                bool "WPA2/WPA3 PSK"
+            config ESP_WIFI_AUTH_WAPI_PSK
+                bool "WAPI PSK"
+        endchoice
+        
+        config MY_WIFI_STA_USE_STATIC_IP
+            bool "使用静态ip"
+            default n
+            help
+                使用静态ip，如果勾选，需手动设置ip地址、子网掩码、网关、dns服务器
+        
+        if MY_WIFI_STA_USE_STATIC_IP
+
+        config MY_WIFI_STA_IP
+            string "静态ip"
+            default ""
+            help
+                静态ip
+
+        config MY_WIFI_STA_NETMASK
+            string "子网掩码"
+            default "255.255.255.0"
+            help
+                子网掩码
+
+        config MY_WIFI_STA_GATEWAY
+            string "网关"
+            default ""
+            help
+                网关，默认为ip所在子网的1号地址，如192.168.1.1
+
+        config MY_WIFI_STA_DNS1
+            string "dns服务器"
+            default ""
+            help 
+                dns服务器，默认为网关地址
+        
+        config MY_WIFI_STA_DNS2
+            string "dns服务器"
+            default ""
+            help
+                dns服务器，默认为网关地址
+
+        endif
+
+    endmenu
+
+    menu "My STA mDNS Configuration"
+
+        config  MY_STA_USE_MDNS
+            bool "使用mDNS"
+            default n
+            help
+                使用mdns，可让支持的设备自动获取esp32的设备名
+
+        config MY_STA_MDNS_HOSTNAME
+            string "mDNS设备名"
+            default "esp32"
+            help
+                mdns设备名，会自动添加.local后缀，对于支持mdns的设备，可使用esp32.local访问该设备，默认值esp32
+                
+    endmenu
+endmenu
+
