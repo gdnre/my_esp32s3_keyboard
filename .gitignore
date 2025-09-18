@@ -4,3 +4,8 @@ managed_components/
 dependencies.lock
 sdkconfig
 sdkconfig.old
+!build/*.bin
+!build/partition_table/partition-table.bin
+!build/bootloader/bootloader.bin
+!build/flash_project_args
+!build/flash_app_args
