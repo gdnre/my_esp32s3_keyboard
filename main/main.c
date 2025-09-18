@@ -42,6 +42,7 @@ void my_wifi_switch_event_handler(void *event_handler_arg, esp_event_base_t even
 void my_config_switch_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data);
 void my_hid_output_event_handle(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data);
 
+uint32_t wake_up_count = 0;
 uint8_t my_app_main_is_return = 0;
 int my_vbus_vol = 0;
 int my_bat_vol = 0;
@@ -56,8 +57,6 @@ inline static void my_set_log_level(esp_log_level_t level)
     esp_log_set_level_master(level);
     esp_log_level_set("*", level);
 }
-
-uint32_t wake_up_count = 0;
 void app_main(void)
 {
     my_timer = esp_timer_get_time();
