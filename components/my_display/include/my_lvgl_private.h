@@ -43,6 +43,10 @@
 #define MY_LV_IMG_SIZE_MAX_X 226 // MY_LCD_H_RES/MY_LV_IMG_SIZE_OFFSET_X
 #define MY_LV_IMG_SIZE_MAX_Y MY_LCD_V_RES
 
+// lvgl屏幕的数量，并非硬件显示器数量，可以理解成不同的桌面
+#define MY_LV_SCREEN_NUM 2
+extern uint8_t my_lv_screen_actually_num;
+
 extern uint8_t my_display_inited;
 extern uint32_t s_current_brightness;
 extern ledc_channel_config_t s_ledc_channel_cfg;
@@ -54,6 +58,8 @@ extern esp_lcd_panel_handle_t my_lcd_panel_handle;
 extern lv_display_t *my_lv_display;
 
 extern lv_obj_t *my_lv_widgets[MY_LV_WIDGET_TOTAL_NUM];
+
+extern lv_obj_t *my_lv_screens[MY_LV_SCREEN_NUM];
 
 void my_lv_create_kb_buttonm(lv_obj_t *scr);
 uint8_t my_lv_set_buttonm_key_state(uint32_t id, uint8_t is_pressed);

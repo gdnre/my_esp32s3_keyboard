@@ -61,7 +61,8 @@ extern uint8_t const my_ascii2keycode_arr[128][2];
 // extern int8_t my_cfg_use_ble_hid;
 
 extern uint8_t my_hid_report_change;
-extern uint8_t _current_layer;
+RTC_DATA_ATTR extern uint8_t _current_layer;
+RTC_DATA_ATTR extern uint8_t _swap_fn;
 RTC_DATA_ATTR extern my_kb_key_config_t *my_kb_keys_config[MY_TOTAL_LAYER][MY_INPUT_KEY_TYPE_BASE_AND_NUM];
 extern uint16_t my_kb_gpio_keys_num;
 extern uint16_t my_kb_encoder_keys_num;

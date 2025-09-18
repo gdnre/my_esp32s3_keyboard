@@ -30,6 +30,7 @@
 #include "my_init.h"
 #include "my_input_keys.h"
 #include "my_keyboard.h"
+#include "my_led_strips.h"
 #include "my_ota.h"
 #include "my_usb.h"
 #include "my_usb_hid.h"
@@ -65,20 +66,28 @@ void app_main(void)
     esp_reset_reason_t reset_reason = esp_reset_reason();
     ESP_LOGD(TAG, "start reason: %d", reset_reason);
     uint8_t read_nvs_config = 1;
+
     if (reset_reason == ESP_RST_PANIC) {
         ESP_LOGE(TAG, "restart because of ESP_RST_PANIC");
         read_nvs_config = 0;
     }
     if (wake_up_count <= 1) {   // 如果不是从睡眠中启动，获取nvs中的配置
         my_cfg_get_boot_mode(); // 读取nvs中设置的启动模式
+
         if (my_cfg_boot_mode.data.u8 == MY_BOOT_MODE_MSC) {
+            // MSC模式
             my_get_chip_mac();
             my_esp_default_event_loop_init();
+            my_led_set_mode(BLINK_DOUBLE_RED);
             my_usb_start(MY_USBD_MSC);
             return;
         }
+
+        // 默认模式
         ESP_ERROR_CHECK(my_mount_fat(NULL, NULL));
         if (my_cfg_check_update.data.u8) {
+            // 检查更新
+            my_backlight_set_level(0);
             if (my_fat_ota_start() == ESP_OK) {
                 vTaskDelay(pdMS_TO_TICKS(2000)); // 延迟2秒，没实际意义
                 esp_restart();
@@ -92,6 +101,7 @@ void app_main(void)
             my_cfg_get_json_configs();
             my_key_configs_load_from_bin();
         }
+        my_led_start(0);
     }
     else { // 从深睡启动
         // my_set_log_level(my_cfg_log_level.data.u8);
@@ -102,8 +112,8 @@ void app_main(void)
     my_esp_default_event_loop_init();
     my_get_chip_mac();
     my_config_event_loop_init();
-    my_cfg_fn_sw_state = 0;
-#if MY_ESPNOW_IS_RECEIVER
+    my_cfg_fn_sw_state = _swap_fn;
+#if CONFIG_MY_DEVICE_IS_RECEIVER
     my_set_log_level(ESP_LOG_ERROR);
     my_cfg_ble.data.u8 = 0;
     my_cfg_wifi_mode.data.u8 = MY_WIFI_MODE_ESPNOW;
@@ -115,12 +125,10 @@ void app_main(void)
 #endif
 
     if (my_cfg_usb.data.u8) { // 启动usb
-        if (my_usb_start(MY_USBD_HID) == ESP_OK)
-            my_cfg_usb_hid_state = MY_FEATURE_USE | MY_FEATURE_INITED;
+        if (my_usb_start(MY_USBD_HID) == ESP_OK) { my_cfg_usb_hid_state = MY_FEATURE_USE | MY_FEATURE_INITED; }
     }
     if (my_cfg_ble.data.u8) { // 启动ble
-        if (my_ble_hid_start() == ESP_OK)
-            my_cfg_ble_state = MY_FEATURE_USE | MY_FEATURE_INITED;
+        if (my_ble_hid_start() == ESP_OK) { my_cfg_ble_state = MY_FEATURE_USE | MY_FEATURE_INITED; }
     }
 
     if (my_cfg_wifi_mode.data.u8) { // 启动wifi
@@ -133,15 +141,12 @@ void app_main(void)
             }
         }
         else {
-            if (my_cfg_wifi_mode.data.u8 & MY_WIFI_MODE_STA)
-                my_cfg_sta_state |= MY_FEATURE_USE;
-            if (my_cfg_wifi_mode.data.u8 & MY_WIFI_MODE_AP)
-                my_cfg_ap_state |= MY_FEATURE_USE;
+            if (my_cfg_wifi_mode.data.u8 & MY_WIFI_MODE_STA) { my_cfg_sta_state |= MY_FEATURE_USE; }
+            if (my_cfg_wifi_mode.data.u8 & MY_WIFI_MODE_AP) { my_cfg_ap_state |= MY_FEATURE_USE; }
         }
     }
 
-    if (my_cfg_use_display.data.u8) // 启动lvgl
-    {
+    if (my_cfg_use_display.data.u8) { // 启动lvgl
         my_display_start();
     }
     else {
@@ -149,7 +154,7 @@ void app_main(void)
     }
 
     my_cfg_event_handler_register(ESP_EVENT_ANY_ID, my_config_switch_event_handler, NULL);
-#if !MY_ESPNOW_IS_RECEIVER
+#if !CONFIG_MY_DEVICE_IS_RECEIVER
     my_cfg_event_handler_register(MY_CFG_EVENT_SWITCH_AP, my_wifi_switch_event_handler, NULL);
     my_cfg_event_handler_register(MY_CFG_EVENT_SWITCH_STA, my_wifi_switch_event_handler, NULL);
     my_cfg_event_handler_register(MY_CFG_EVENT_SWITCH_ESPNOW, my_wifi_switch_event_handler, NULL);
@@ -157,16 +162,18 @@ void app_main(void)
     esp_event_handler_register(MY_HID_EVTS, MY_HID_OUTPUT_GET_REPORT_EVENT, my_hid_output_event_handle, NULL);
     if (my_kb_led_report.raw) // 对于键盘，可能在lvgl启动前就收到了键盘指示灯报告，这种情况下需要手动发送一次，对于接收器没影响，可发可不发
         esp_event_post(MY_HID_EVTS, MY_HID_OUTPUT_GET_REPORT_EVENT, &my_kb_led_report.raw, sizeof(my_kb_led_report.raw), 0);
-#if !MY_ESPNOW_IS_RECEIVER
-    if (my_cfg_usb_hid_state)
+#if !CONFIG_MY_DEVICE_IS_RECEIVER
+    if (my_cfg_usb_hid_state) {
         my_lv_widget_state_change_send_event(MY_LV_WIDGET_USB);
-
+    }
     my_device_voltage_check_timer_run();
     my_ina226_task_start(3072, 1, 1);
 #endif
 
     if (reset_reason == ESP_RST_DEEPSLEEP) {
+        // 从深睡模式启动时，某些函数放到后面执行
         my_set_log_level(my_cfg_log_level.data.u8);
+        my_led_start(0);
     }
     my_app_main_is_return = 1;
 
@@ -177,6 +184,7 @@ void app_main(void)
 
 void my_deep_sleep_start()
 {
+    my_led_set_mode(BLINK_MAX);
     // 如果是自动触发的，没有任何影响，如果是手动触发的，检查下输出引脚是否会在深睡保持低电平
     esp_sleep_enable_ext1_wakeup_io(MY_SLEEP_WAKE_UP_IO_MASK, MY_MATRIX_ACTIVE_LEVEL > 0 ? ESP_EXT1_WAKEUP_ANY_HIGH : ESP_EXT1_WAKEUP_ANY_LOW);
     esp_deep_sleep_start();
@@ -330,6 +338,11 @@ void my_config_switch_event_handler(void *event_handler_arg, esp_event_base_t ev
                 }
                 my_cfg_save_config_to_nvs(&my_cfg_use_display);
                 break;
+            case MY_CFG_EVENT_SWITCH_LVGL_SCREEN:
+                if (my_lv_switch_screen() == ESP_OK) {
+                    my_cfg_save_config_to_nvs(&my_cfg_lvScrIndex);
+                }
+                break;
             case MY_CFG_EVENT_SWITCH_SLEEP_EN:
                 my_cfg_sleep_enable.data.u8 = !my_cfg_sleep_enable.data.u8; // 不记录是否允许睡眠
                 static char sleep_pop_text[20] = {0};
@@ -344,6 +357,16 @@ void my_config_switch_event_handler(void *event_handler_arg, esp_event_base_t ev
                 else if (ret == ESP_ERR_INVALID_STATE) {
                     my_lv_send_pop_message("already set");
                 }
+                break;
+            case MY_CFG_EVENT_SWITCH_LED_MODE:
+                my_led_start(1);
+                break;
+            case MY_CFG_EVENT_SWITCH_LED_BRIGHTNESS:
+                uint8_t led_bri = my_cfg_led_brightness.data.u8;
+                led_bri = (led_bri + 20) % 120;
+                my_led_set_brightness(led_bri);
+                my_cfg_led_brightness.data.u8 = led_bri;
+                my_cfg_save_config_to_nvs(&my_cfg_led_brightness);
                 break;
             case MY_CFG_EVENT_SWITCH_LOG_LEVEL:
                 uint8_t _log_level = (my_cfg_log_level.data.u8 + 1) % (CONFIG_LOG_MAXIMUM_LEVEL + 1);
@@ -382,6 +405,7 @@ void my_config_switch_event_handler(void *event_handler_arg, esp_event_base_t ev
                 if (log_pop_text)
                     my_lv_send_pop_message(log_pop_text);
                 break;
+
             case MY_CFG_EVENT_ERASE_NVS_CONFIGS:
                 // todo
                 static uint8_t trigger_count = 0;

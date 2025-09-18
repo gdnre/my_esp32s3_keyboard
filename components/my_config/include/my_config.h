@@ -108,6 +108,14 @@ in  row3                                空
 // 226芯片id寄存器地址
 #define MY_INA226_REG_DIEID (0xFF)
 
+// LED引脚
+// LED电源(控制亮度)，如果用ao3401，可能无法完全关闭，因为Vgsth为-0.4到-1.3
+#define MY_LED_POWER 48
+#define MY_LED_ON_LEVEL 0
+// LED数据输入
+#define MY_LED_DIN 47
+#define MY_LED_COUNT 1
+
 ESP_EVENT_DECLARE_BASE(MY_CONFIG_EVENTS);
 ESP_EVENT_DECLARE_BASE(MY_STATE_CHANGE_EVENTS);
 
@@ -202,34 +210,40 @@ typedef enum {
     MY_CFG_EVENT_SWITCH_STA,
     MY_CFG_EVENT_SWITCH_AP,
     MY_CFG_EVENT_SWITCH_ESPNOW,
-    MY_CFG_EVENT_SWITCH_SCREEN,
+    MY_CFG_EVENT_SWITCH_SCREEN, // 打开或关闭屏幕
     MY_CFG_EVENT_INCREASE_BRIGHTNESS,
     MY_CFG_EVENT_SWITCH_SLEEP_EN,
     MY_CFG_EVENT_SET_ESPNOW_PAIRING,
     MY_CFG_EVENT_SWITCH_LOG_LEVEL,
     MY_CFG_EVENT_ERASE_NVS_CONFIGS,
+    MY_CFG_EVENT_SWITCH_LVGL_SCREEN,    // 相当于切换lvgl屏幕上显示的桌面
+    MY_CFG_EVENT_SWITCH_LED_MODE,       // 切换led灯模式
+    MY_CFG_EVENT_SWITCH_LED_BRIGHTNESS, // 循环增加led灯亮度，仅在单色模式下生效
     MY_CFG_EVENT_SWITCH_MAX_NUM,
     // 下面的事件不该被键盘使用
     MY_CFG_EVENT_TIMER_CHECK_VOLTAGE,
     MY_CFG_EVENT_TIMER_MAX_NUM,
 } my_cfg_event_t;
 
-#define MY_CFG_EVENT_STR_ARR {                    \
-    "RST", /* MY_CFG_EVENT_RESTART_DEVICE */      \
-    "DS",  /* MY_CFG_EVENT_DEEP_SLEEP_START */    \
-    "MSC", /* MY_CFG_EVENT_SET_BOOT_MODE_MSC */   \
-    "USB", /* MY_CFG_EVENT_SWITCH_USB */          \
-    "BLE", /* MY_CFG_EVENT_SWITCH_BLE */          \
-    "STA", /* MY_CFG_EVENT_SWITCH_STA */          \
-    "AP",  /* MY_CFG_EVENT_SWITCH_AP */           \
-    "NOW", /* MY_CFG_EVENT_SWITCH_ESPNOW */       \
-    "SCR", /* MY_CFG_EVENT_SWITCH_SCREEN */       \
-    "BRI", /* MY_CFG_EVENT_INCREASE_BRIGHTNESS */ \
-    "SEN", /* MY_CFG_EVENT_SWITCH_SLEEP_EN */     \
-    "PAI", /* MY_CFG_EVENT_SET_ESPNOW_PAIRING */  \
-    "LOG", /* MY_CFG_EVENT_SWITCH_LOG_LEVEL */    \
-    "ERA", /* MY_CFG_EVENT_ERASE_NVS_CONFIGS */   \
-    "ERR", /* MY_CFG_EVENT_SWITCH_MAX_NUM */      \
+#define MY_CFG_EVENT_STR_ARR {                      \
+    "RST", /* MY_CFG_EVENT_RESTART_DEVICE */        \
+    "DS",  /* MY_CFG_EVENT_DEEP_SLEEP_START */      \
+    "MSC", /* MY_CFG_EVENT_SET_BOOT_MODE_MSC */     \
+    "USB", /* MY_CFG_EVENT_SWITCH_USB */            \
+    "BLE", /* MY_CFG_EVENT_SWITCH_BLE */            \
+    "STA", /* MY_CFG_EVENT_SWITCH_STA */            \
+    "AP",  /* MY_CFG_EVENT_SWITCH_AP */             \
+    "NOW", /* MY_CFG_EVENT_SWITCH_ESPNOW */         \
+    "SCR", /* MY_CFG_EVENT_SWITCH_SCREEN */         \
+    "BRI", /* MY_CFG_EVENT_INCREASE_BRIGHTNESS */   \
+    "SEN", /* MY_CFG_EVENT_SWITCH_SLEEP_EN */       \
+    "PAI", /* MY_CFG_EVENT_SET_ESPNOW_PAIRING */    \
+    "LOG", /* MY_CFG_EVENT_SWITCH_LOG_LEVEL */      \
+    "ERA", /* MY_CFG_EVENT_ERASE_NVS_CONFIGS */     \
+    "LVS", /* MY_CFG_EVENT_SWITCH_LVGL_SCREEN */    \
+    "LED", /* MY_CFG_EVENT_SWITCH_LED_MODE */       \
+    "LBR", /* MY_CFG_EVENT_SWITCH_LED_BRIGHTNESS */ \
+    "ERR", /* MY_CFG_EVENT_SWITCH_MAX_NUM */        \
 }
 
 typedef enum {
@@ -268,12 +282,23 @@ RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_out_def_config; // 在启动时，输�
 RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_usb;         // 启动时检查是否开启usb hid功能，要存储在nvs中
 RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_ble;         // 启动时检查是否开启ble hid功能，要存储在nvs中
 RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_use_display; // 启动时检查是否开启显示屏，要存储在nvs中，如果默认不开启，之后开启时可能需要时间加载
-RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_brightness;
-RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_wifi_mode; // wifi功能，ap,sta,apsta,都是为了开启http修改配置，需要用到fat分区
+RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_brightness;  // 屏幕亮度
+RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_wifi_mode;   // wifi功能，ap,sta,apsta,都是为了开启http修改配置，需要用到fat分区
 
 RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_sleep_time;   // 无操作时，进入休眠的时间，单位为秒
 RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_sleep_enable; // 是否进入休眠
-RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_log_level;
+RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_log_level;    // 日志等级
+
+RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_lvScrIndex; // 当前要显示的屏幕桌面
+
+RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_led_brightness;  // led的亮度,0-100%的百分比
+RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_led_mode;        // led的模式，要关闭则设置为关闭模式
+RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_led_color;       // led的颜色，仅在单色模式下有效，值为0xRRGGBB转换为10进制，注意rgb的值也影响亮度
+RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_led_temperature; // led的色温，0-1000000
+RTC_DATA_ATTR extern my_nvs_cfg_t my_cfg_led_calibrate;   // led颜色的校准值
+
+RTC_DATA_ATTR extern char my_bkImage0[256];
+RTC_DATA_ATTR extern char my_bkImage1[256];
 
 extern my_nvs_cfg_t *my_nvs_cfg_list_to_get[];
 extern uint8_t my_nvs_cfg_list_to_get_size;
@@ -355,6 +380,7 @@ typedef enum {
     MY_LV_WIDGET_VBUS_VOL,
     MY_LV_WIDGET_BAT_VOL,
     MY_LV_WIDGET_INA226,
+    MY_LV_WIDGET_SCR1,
     MY_LV_WIDGET_TOTAL_NUM
 } my_lv_widget_index_t;
 
@@ -401,13 +427,6 @@ int64_t my_get_time();
 // #define LCD_CS 17
 // #define LCD_BL 6
 // #define LCD_PINS {LCD_SCL, LCD_SDA, LCD_RES, LCD_DC, LCD_CS, LCD_BL}
-
-// // LED引脚
-// // LED电源(控制亮度)
-// #define LED_POWER 48
-// // LED数据输入
-// #define LED_DIN 47
-// #define LED_COUNT 1
 
 // // 数字键和大小写锁定指示
 // #define SIGN_LED_DIN 45

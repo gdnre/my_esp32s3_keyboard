@@ -35,6 +35,15 @@ const char *controlDir_path = "/web/control/";
 const char *control_index_path = "/web/control/index.html";
 const char *control_script_path = "/web/control/script.js";
 const char *control_style_path = "/web/control/style.css";
+
+const char *dev_html_path = "/web/control/dev.html";
+const char *dev_script_path = "/web/control/dev.js";
+const char *dev_style_path = "/web/control/dev.css";
+
+const char *kbd_html_path = "/web/control/kbd.html";
+const char *kbd_script_path = "/web/control/kbd.js";
+const char *kbd_style_path = "/web/control/kbd.css";
+
 static my_file_server_data_t *server_data = NULL;
 
 // 匹配/*?的默认重定向路径
@@ -286,7 +295,7 @@ recv_err:
 static esp_err_t
 file_delete_post_handler(httpd_req_t *req)
 {
-    if (req->method != HTTP_POST || req->method != HTTP_GET) {
+    if (req->method != HTTP_POST && req->method != HTTP_GET) {
         httpd_resp_send_err(req, HTTPD_405_METHOD_NOT_ALLOWED, "only support POST or GET method");
         return ESP_FAIL;
     }
@@ -460,7 +469,7 @@ device_control_handler(httpd_req_t *req)
         }
         else if (uri_len == 8) {
             if (strncmp(last_uri, MY_URI_API_DEV_GETINFO_SUB, uri_len) == 0) {
-                // 发送一些设备信息 /api/dev/info
+                // 发送一些设备信息 /api/dev/getinfo
                 return my_fs_send_device_info_json(req);
             }
             else if (strncmp(last_uri, MY_URI_API_DEV_RESTART_SUB, uri_len) == 0) {

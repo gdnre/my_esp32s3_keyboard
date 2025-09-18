@@ -1,15 +1,15 @@
-#include "my_config.h"
-
-#include <stdio.h>
-
 #include "cJSON.h"
 #include "esp_crc.h"
 #include "esp_timer.h"
+#include "sdkconfig.h"
+#include "string.h"
+#include <stdio.h>
+
+#include "my_config.h"
 #include "my_fat_mount.h"
 #include "my_init.h"
 #include "my_keyboard.h"
 #include "my_wifi_config.h"
-#include "string.h"
 
 ESP_EVENT_DEFINE_BASE(MY_CONFIG_EVENTS);
 ESP_EVENT_DEFINE_BASE(MY_STATE_CHANGE_EVENTS);
@@ -37,6 +37,15 @@ my_nvs_cfg_t my_cfg_check_update = {.name = "checkUpdate", .size = 1, .is_ptr = 
 
 my_nvs_cfg_t my_cfg_out_def_config = {.name = "outDef", .size = 1, .is_ptr = 0, .data.u8 = 1};
 
+#if CONFIG_MY_DEVICE_IS_RECEIVER
+my_nvs_cfg_t my_cfg_usb = {.name = "usb", .size = 1, .is_ptr = 0, .data.u8 = 1};
+my_nvs_cfg_t my_cfg_ble = {.name = "ble", .size = 1, .is_ptr = 0, .data.u8 = 0};
+my_nvs_cfg_t my_cfg_use_display = {.name = "display", .size = 1, .is_ptr = 0, .data.u8 = 0};
+my_nvs_cfg_t my_cfg_brightness = {.name = "brightness", .size = 1, .is_ptr = 0, .data.u8 = 100};
+my_nvs_cfg_t my_cfg_wifi_mode = {.name = "wifiMode", .size = 1, .is_ptr = 0, .data.u8 = MY_WIFI_MODE_ESPNOW};
+my_nvs_cfg_t my_cfg_sleep_time = {.name = "sleepTime", .size = 2, .is_ptr = 0, .data.u16 = 1200};
+my_nvs_cfg_t my_cfg_sleep_enable = {.name = "sleepEn", .size = 1, .is_ptr = 0, .data.u8 = 0};
+#else
 my_nvs_cfg_t my_cfg_usb = {.name = "usb", .size = 1, .is_ptr = 0, .data.u8 = 0};
 my_nvs_cfg_t my_cfg_ble = {.name = "ble", .size = 1, .is_ptr = 0, .data.u8 = 0};
 my_nvs_cfg_t my_cfg_use_display = {.name = "display", .size = 1, .is_ptr = 0, .data.u8 = 1};
@@ -44,12 +53,20 @@ my_nvs_cfg_t my_cfg_brightness = {.name = "brightness", .size = 1, .is_ptr = 0, 
 my_nvs_cfg_t my_cfg_wifi_mode = {.name = "wifiMode", .size = 1, .is_ptr = 0, .data.u8 = 0};
 my_nvs_cfg_t my_cfg_sleep_time = {.name = "sleepTime", .size = 2, .is_ptr = 0, .data.u16 = 1200};
 my_nvs_cfg_t my_cfg_sleep_enable = {.name = "sleepEn", .size = 1, .is_ptr = 0, .data.u8 = 1};
+#endif
 my_nvs_cfg_t my_cfg_log_level = {.name = "logLevel", .size = 1, .is_ptr = 0, .data.u8 = ESP_LOG_WARN};
+my_nvs_cfg_t my_cfg_lvScrIndex = {.name = "lvScrIndex", .size = 1, .is_ptr = 0, .data.u8 = 0};
 
-my_nvs_cfg_t *my_nvs_cfg_list_to_get[] = {&my_cfg_out_def_config, &my_cfg_usb, &my_cfg_ble, &my_cfg_use_display, &my_cfg_brightness, &my_cfg_wifi_mode, &my_cfg_sleep_time, &my_cfg_sleep_enable, &my_cfg_log_level, NULL};
+my_nvs_cfg_t my_cfg_led_brightness = {.name = "ledBri", .size = 1, .is_ptr = 0, .data.u8 = 50};
+my_nvs_cfg_t my_cfg_led_mode = {.name = "ledMode", .size = 1, .is_ptr = 0, .data.u8 = 0xff};
+my_nvs_cfg_t my_cfg_led_color = {.name = "ledColor", .size = 4, .is_ptr = 0, .data.u32 = 0xD08CFF};
+my_nvs_cfg_t my_cfg_led_temperature = {.name = "ledTemp", .size = 4, .is_ptr = 0, .data.u32 = 0xffffffff};
+my_nvs_cfg_t my_cfg_led_calibrate = {.name = "ledCali", .size = 4, .is_ptr = 0, .data.u32 = 0xFFB0F0};
+
+my_nvs_cfg_t *my_nvs_cfg_list_to_get[] = {&my_cfg_out_def_config, &my_cfg_usb, &my_cfg_ble, &my_cfg_use_display, &my_cfg_brightness, &my_cfg_wifi_mode, &my_cfg_sleep_time, &my_cfg_sleep_enable, &my_cfg_log_level, &my_cfg_lvScrIndex, &my_cfg_led_brightness, &my_cfg_led_mode, &my_cfg_led_color, &my_cfg_led_temperature, &my_cfg_led_calibrate, NULL};
 uint8_t my_nvs_cfg_list_to_get_size = (sizeof(my_nvs_cfg_list_to_get) / sizeof(my_nvs_cfg_list_to_get[0])) - 1;
 
-my_nvs_cfg_t *my_nvs_cfg_list_for_json[] = {&my_cfg_boot_mode, &my_cfg_next_boot_mode, &my_cfg_check_update, &my_cfg_out_def_config, &my_cfg_usb, &my_cfg_ble, &my_cfg_use_display, &my_cfg_brightness, &my_cfg_wifi_mode, &my_cfg_sleep_time, &my_cfg_sleep_enable, &my_cfg_log_level, NULL};
+my_nvs_cfg_t *my_nvs_cfg_list_for_json[] = {&my_cfg_boot_mode, &my_cfg_next_boot_mode, &my_cfg_check_update, &my_cfg_out_def_config, &my_cfg_usb, &my_cfg_ble, &my_cfg_use_display, &my_cfg_brightness, &my_cfg_wifi_mode, &my_cfg_sleep_time, &my_cfg_sleep_enable, &my_cfg_log_level, &my_cfg_lvScrIndex, &my_cfg_led_brightness, &my_cfg_led_mode, &my_cfg_led_color, &my_cfg_led_temperature, &my_cfg_led_calibrate, NULL};
 uint8_t my_nvs_cfg_list_for_json_size = (sizeof(my_nvs_cfg_list_for_json) / sizeof(my_nvs_cfg_list_for_json[0])) - 1;
 
 my_feature_state_t my_cfg_usb_hid_state;
@@ -62,7 +79,7 @@ my_feature_state_t my_cfg_adc_state;
 my_feature_state_t my_cfg_ina226_state;
 my_lvgl_widgets_info_t my_lv_info;
 
-my_feature_state_t my_cfg_fn_sw_state;
+my_feature_state_t my_cfg_fn_sw_state = 0;
 uint8_t my_cfg_kb_led_raw_state;
 
 static nvs_handle_t s_nvs_handle;
@@ -142,6 +159,8 @@ esp_err_t my_cfg_erase_nvs_configs(void)
     nvs_erase_key(s_nvs_handle, "apPasswd");
     nvs_erase_key(s_nvs_handle, "staSSID");
     nvs_erase_key(s_nvs_handle, "staPasswd");
+    nvs_erase_key(s_nvs_handle, "bkImage0");
+    nvs_erase_key(s_nvs_handle, "bkImage1");
 
     my_cfg_nvs_close();
     return ret;
@@ -229,6 +248,8 @@ esp_err_t my_cfg_get_nvs_configs(void)
     my_cfg_get_nvs_str_static("apPasswd", my_ap_password, NULL, sizeof(my_ap_password));
     my_cfg_get_nvs_str_static("staSSID", my_sta_ssid, NULL, sizeof(my_sta_ssid));
     my_cfg_get_nvs_str_static("staPasswd", my_sta_password, NULL, sizeof(my_sta_password));
+    my_cfg_get_nvs_str_static("bkImage0", my_bkImage0, NULL, sizeof(my_bkImage0));
+    my_cfg_get_nvs_str_static("bkImage1", my_bkImage1, NULL, sizeof(my_bkImage1));
     my_cfg_nvs_close();
     return ret;
 }
@@ -744,6 +765,20 @@ static int my_devConfigsObj_parse(cJSON *json_obj)
         set_item_num++;
         str = NULL;
     }
+
+    str = my_cjson_copy_str_from_item_static(json_obj, "bkImage0", my_bkImage0, my_bkImage0, sizeof(my_bkImage0));
+    if (str) {
+        nvs_set_str(s_nvs_handle, "bkImage0", str);
+        set_item_num++;
+        str = NULL;
+    }
+    str = my_cjson_copy_str_from_item_static(json_obj, "bkImage1", my_bkImage1, my_bkImage1, sizeof(my_bkImage1));
+    if (str) {
+        nvs_set_str(s_nvs_handle, "bkImage1", str);
+        set_item_num++;
+        str = NULL;
+    }
+
     nvs_commit(s_nvs_handle);
     // my_cfg_nvs_close();
     return set_item_num;
@@ -985,6 +1020,14 @@ static cJSON *my_nvs_cfgs_to_json_obj(uint8_t *out_add_num)
         add_num++;
     }
     item = cJSON_AddStringToObject(root, "staPasswd", "");
+    if (item) {
+        add_num++;
+    }
+    item = cJSON_AddStringToObject(root, "bkImage0", my_bkImage0);
+    if (item) {
+        add_num++;
+    }
+    item = cJSON_AddStringToObject(root, "bkImage1", my_bkImage1);
     if (item) {
         add_num++;
     }

@@ -3,6 +3,7 @@
 #include "sdkconfig.h"
 
 #ifdef CONFIG_MY_DEVICE_IS_RECEIVER
+// 这个宏之后要废弃，是没用sdkconfig时定义的
 #define MY_ESPNOW_IS_RECEIVER CONFIG_MY_DEVICE_IS_RECEIVER
 #else
 #define MY_ESPNOW_IS_RECEIVER 0

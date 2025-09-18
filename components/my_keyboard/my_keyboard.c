@@ -5,8 +5,10 @@
 #include "my_ble_hid.h"
 #include "my_config.h"
 #include "my_input_keys.h"
+#include "my_keyboard_define.h"
 #include "my_usb.h"
 #include "my_usb_hid.h"
+#include "sdkconfig.h"
 #include <stdio.h>
 
 // #include "esp_lvgl_port.h"
@@ -31,6 +33,9 @@ char const *my_keycode_28to2c_to_str_arr[5] = {
     "tab",
     "spa",
 };
+
+char const *my_keycode_to_str_arr[] = {MY_HID_KEYCODE_TO_STRING};
+uint16_t my_keycode_to_str_arr_len = sizeof(my_keycode_to_str_arr) / sizeof(char *);
 
 // 用于lvgl显示按键的字符串map，每层的长度应该为按键数+行数
 char *_matrix_str_map_0[MY_MATRIX_KEY_NUM + MY_ROW_NUM] = {NULL};
@@ -80,6 +85,9 @@ uint8_t const my_keycode2ascii_arr[128][2] = {HID_KEYCODE_TO_ASCII};
 #define MY_SW_DEEP_SLEEP_EN_CFG MY_CTRL_CFG(MY_CFG_EVENT_SWITCH_SLEEP_EN)
 #define MY_LOG_LEVEL_CFG MY_CTRL_CFG(MY_CFG_EVENT_SWITCH_LOG_LEVEL)
 #define MY_ERASE_NVS_CFG MY_CTRL_CFG(MY_CFG_EVENT_ERASE_NVS_CONFIGS)
+#define MY_SW_LV_SCR_CFG MY_CTRL_CFG(MY_CFG_EVENT_SWITCH_LVGL_SCREEN)
+#define MY_SW_LED_MODE_CFG MY_CTRL_CFG(MY_CFG_EVENT_SWITCH_LED_MODE)
+#define MY_INCREASE_LED_BRI_CFG MY_CTRL_CFG(MY_CFG_EVENT_SWITCH_LED_BRIGHTNESS)
 #pragma endregion 按键配置快捷宏
 
 #pragma region // 键盘按键配置
@@ -95,8 +103,8 @@ RTC_DATA_ATTR static my_kb_key_config_t _config_matrix_keys_0[MY_MATRIX_KEY_NUM]
     MY_KEYCODE_CFG(HID_KEY_KEYPAD_1), MY_KEYCODE_CFG(HID_KEY_KEYPAD_2), MY_KEYCODE_CFG(HID_KEY_KEYPAD_3), MY_KEYCODE_CFG(HID_KEY_KEYPAD_ENTER), MY_EMPTY_CFG,
     MY_KEYCODE_CFG(HID_KEY_KEYPAD_0), MY_KEYCODE_CFG(HID_KEY_KEYPAD_0), MY_KEYCODE_CFG(HID_KEY_KEYPAD_DECIMAL), MY_KEYCODE_CFG(HID_KEY_KEYPAD_ENTER), MY_RESTART_CFG};
 RTC_DATA_ATTR static my_kb_key_config_t _config_matrix_keys_1[MY_MATRIX_KEY_NUM] = {
-    MY_FN_CFG, MY_CONSUMER_CFG(HID_USAGE_CONSUMER_VOLUME_DECREMENT), MY_CONSUMER_CFG(HID_USAGE_CONSUMER_VOLUME_INCREMENT), MY_CONSUMER_CFG(HID_USAGE_CONSUMER_MUTE), MY_EMPTY_CFG,
-    MY_KEYCODE_CFG(HID_KEY_BACKSPACE), MY_KEYCODE_CFG(HID_KEY_KEYPAD_DIVIDE), MY_KEYCODE_CFG(HID_KEY_KEYPAD_MULTIPLY), MY_KEYCODE_CFG(HID_KEY_KEYPAD_SUBTRACT), MY_EMPTY_CFG,
+    MY_FN_CFG, MY_EMPTY_CFG, MY_EMPTY_CFG, MY_CONSUMER_CFG(HID_USAGE_CONSUMER_MUTE), MY_EMPTY_CFG,
+    MY_KEYCODE_CFG(HID_KEY_NUM_LOCK), MY_KEYCODE_CFG(HID_KEY_KEYPAD_DIVIDE), MY_KEYCODE_CFG(HID_KEY_KEYPAD_MULTIPLY), MY_KEYCODE_CFG(HID_KEY_KEYPAD_SUBTRACT), MY_EMPTY_CFG,
     MY_KEYCODE_CFG(HID_KEY_KEYPAD_7), MY_KEYCODE_CFG(HID_KEY_KEYPAD_8), MY_KEYCODE_CFG(HID_KEY_KEYPAD_9), MY_FN2_CFG, MY_EMPTY_CFG,
     MY_KEYCODE_CFG(HID_KEY_KEYPAD_4), MY_KEYCODE_CFG(HID_KEY_KEYPAD_5), MY_KEYCODE_CFG(HID_KEY_KEYPAD_6), MY_KEYCODE_CFG(HID_KEY_KEYPAD_ADD), MY_EMPTY_CFG,
     MY_KEYCODE_CFG(HID_KEY_KEYPAD_1), MY_KEYCODE_CFG(HID_KEY_KEYPAD_2), MY_KEYCODE_CFG(HID_KEY_KEYPAD_3), MY_KEYCODE_CFG(HID_KEY_KEYPAD_ENTER), MY_EMPTY_CFG,
@@ -106,15 +114,15 @@ RTC_DATA_ATTR static my_kb_key_config_t _config_matrix_keys_2[MY_MATRIX_KEY_NUM]
     MY_SW_USB_CFG, MY_SW_BLE_CFG, MY_SW_ESPNOW_CFG, MY_FN_SW_CFG, MY_EMPTY_CFG,
     MY_SW_SCREEN_CFG, MY_INCREASE_BRIGHTNESS_CFG, MY_USE_MSC_CFG, MY_FN2_CFG, MY_EMPTY_CFG,
     MY_SW_AP_CFG, MY_SW_STA_CFG, MY_SW_DEEP_SLEEP_EN_CFG, MY_DEEP_SLEEP_START_CFG, MY_EMPTY_CFG,
-    MY_ESPNOW_PAIRING_CFG, MY_LOG_LEVEL_CFG, MY_ERASE_NVS_CFG, MY_KEYCODE_CFG(HID_KEY_KEYPAD_ENTER), MY_EMPTY_CFG,
-    MY_KEYCODE_CFG(HID_KEY_KEYPAD_0), MY_KEYCODE_CFG(HID_KEY_KEYPAD_0), MY_KEYCODE_CFG(HID_KEY_KEYPAD_DECIMAL), MY_KEYCODE_CFG(HID_KEY_KEYPAD_ENTER), MY_RESTART_CFG};
+    MY_ESPNOW_PAIRING_CFG, MY_LOG_LEVEL_CFG, MY_ERASE_NVS_CFG, MY_SW_LV_SCR_CFG, MY_EMPTY_CFG,
+    MY_SW_LED_MODE_CFG, MY_INCREASE_LED_BRI_CFG, MY_KEYCODE_CFG(HID_KEY_KEYPAD_DECIMAL), MY_KEYCODE_CFG(HID_KEY_KEYPAD_ENTER), MY_RESTART_CFG};
 
 RTC_DATA_ATTR static my_kb_key_config_t _config_encoder_keys_0[2] = {
     MY_CONSUMER_CFG(HID_USAGE_CONSUMER_VOLUME_DECREMENT),
     MY_CONSUMER_CFG(HID_USAGE_CONSUMER_VOLUME_INCREMENT)};
 RTC_DATA_ATTR static my_kb_key_config_t _config_encoder_keys_1[2] = {
-    MY_CONSUMER_CFG(HID_USAGE_CONSUMER_VOLUME_INCREMENT),
-    MY_CONSUMER_CFG(HID_USAGE_CONSUMER_VOLUME_DECREMENT)};
+    MY_CONSUMER_CFG(HID_USAGE_CONSUMER_VOLUME_DECREMENT),
+    MY_CONSUMER_CFG(HID_USAGE_CONSUMER_VOLUME_INCREMENT)};
 RTC_DATA_ATTR static my_kb_key_config_t _config_encoder_keys_2[2] = {
     MY_CONSUMER_CFG(HID_USAGE_CONSUMER_SCAN_PREVIOUS),
     MY_CONSUMER_CFG(HID_USAGE_CONSUMER_SCAN_NEXT)};
@@ -201,6 +209,7 @@ esp_err_t my_keyboard_init(void)
 }
 
 #pragma region // 接收器用函数
+// #if CONFIG_MY_DEVICE_IS_RECEIVER
 void my_receiver_key_released_cb(my_input_key_event_t event, void *arg)
 {
     if (!arg) {
@@ -216,13 +225,17 @@ void my_receiver_key_pressed_cb(my_input_key_event_t event, void *arg)
     }
     my_key_info_t *my_key = (my_key_info_t *)arg;
     int64_t now = esp_timer_get_time();
+    // 计算这次按键按下的时间和上次按下的时间间隔
     int64_t time_gap = now - my_key->pressed_timer;
+    // 如果时间间隔很短，可能是抖动，如果间隔很长，说明并非双击或以上
     if (time_gap >= 10000 && time_gap < 500000) {
         my_key->user_data.trigger_count++;
         if (my_key->user_data.trigger_count == 1) {
+            // 如果是双击，则切换usb开关
             my_cfg_event_post(MY_CFG_EVENT_SWITCH_USB, NULL, 0, 0);
         }
         else if (my_key->user_data.trigger_count == 2) {
+            // 如果是三击，将下次启动模式切换为msc模式，注意三击前一定会触发双击
             my_cfg_event_post(MY_CFG_EVENT_SET_BOOT_MODE_MSC, NULL, 0, 0);
         }
     }
@@ -242,8 +255,10 @@ void my_receiver_key_longpressed_cb(my_input_key_event_t event, void *arg)
             int64_t now = esp_timer_get_time();
             if (now - my_key->pressed_timer > 2000000 + 2000000 * my_key->user_data.trigger_count) {
                 my_key->user_data.trigger_count++;
-                if (my_key->user_data.trigger_count == 1)
+                if (my_key->user_data.trigger_count == 1) {
+                    // 第一次触发长按，设置重新配对
                     my_cfg_event_post(MY_CFG_EVENT_SET_ESPNOW_PAIRING, NULL, 0, 0);
+                }
             }
             break;
         default:
@@ -274,6 +289,7 @@ esp_err_t my_receiver_key_init(void)
     xTaskCreatePinnedToCore(my_input_key_task, "input task", 4096, NULL, 1, &my_input_task_handle, 1);
     return ESP_OK;
 }
+// #endif // CONFIG_MY_DEVICE_IS_RECEIVER
 #pragma endregion 接收器用函数
 
 #pragma region lvgl显示相关
@@ -289,15 +305,18 @@ static esp_err_t my_key_cfg_to_str_handler(my_kb_key_config_t *key_cfg, char *ou
     }
     switch (key_cfg->type) {
         case MY_KEYBOARD_CODE: {
-            if (key_cfg->code8 == HID_KEY_KEYPAD_ENTER) {
-                snprintf(out_str, MY_KEY_STRING_MAP_MAX_LENGTH, "%s\n", my_keycode_28to2c_to_str_arr[0]);
+            if (key_cfg->code8 < my_keycode_to_str_arr_len) {
+                snprintf(out_str, MY_KEY_STRING_MAP_MAX_LENGTH, "%s\n", my_keycode_to_str_arr[key_cfg->code8]);
             }
-            else if (key_cfg->code8 >= HID_KEY_ENTER && key_cfg->code8 <= HID_KEY_SPACE) {
-                snprintf(out_str, MY_KEY_STRING_MAP_MAX_LENGTH, "%s\n", my_keycode_28to2c_to_str_arr[key_cfg->code8 - HID_KEY_ENTER]);
-            }
-            else if (key_cfg->code8 < 128) {
-                snprintf(out_str, MY_KEY_STRING_MAP_MAX_LENGTH, "%c\n", my_keycode2ascii_arr[key_cfg->code8][0] == 0 ? ' ' : my_keycode2ascii_arr[key_cfg->code8][0]);
-            }
+            // if (key_cfg->code8 == HID_KEY_KEYPAD_ENTER) {
+            //     snprintf(out_str, MY_KEY_STRING_MAP_MAX_LENGTH, "%s\n", my_keycode_28to2c_to_str_arr[0]);
+            // }
+            // else if (key_cfg->code8 >= HID_KEY_ENTER && key_cfg->code8 <= HID_KEY_SPACE) {
+            //     snprintf(out_str, MY_KEY_STRING_MAP_MAX_LENGTH, "%s\n", my_keycode_28to2c_to_str_arr[key_cfg->code8 - HID_KEY_ENTER]);
+            // }
+            // else if (key_cfg->code8 < 128) {
+            //     snprintf(out_str, MY_KEY_STRING_MAP_MAX_LENGTH, "%c\n", my_keycode2ascii_arr[key_cfg->code8][0] == 0 ? ' ' : my_keycode2ascii_arr[key_cfg->code8][0]);
+            // }
             else if (key_cfg->code8 >= HID_KEY_CONTROL_LEFT && key_cfg->code8 <= HID_KEY_GUI_RIGHT) {
                 snprintf(out_str, MY_KEY_STRING_MAP_MAX_LENGTH, "%s\n", my_keycode_E0toE7_to_str_arr[key_cfg->code8 - HID_KEY_CONTROL_LEFT]);
             }

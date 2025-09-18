@@ -1,0 +1,141 @@
+#pragma once
+#define MY_HID_KEYCODE_TO_STRING                           \
+    "nan",              /* 0x00 HID_KEY_NONE*/             \
+        "nan",          /* 0x01 */                         \
+        "nan",          /* 0x02 */                         \
+        "nan",          /* 0x03 */                         \
+        "a/A",          /* 0x04 HID_KEY_A            */    \
+        "b/B",          /* 0x05 HID_KEY_B            */    \
+        "c/C",          /* 0x06 HID_KEY_C            */    \
+        "d/D",          /* 0x07 HID_KEY_D            */    \
+        "e/E",          /* 0x08 HID_KEY_E            */    \
+        "f/F",          /* 0x09 HID_KEY_F            */    \
+        "g/G",          /* 0x0a HID_KEY_G            */    \
+        "h/H",          /* 0x0b HID_KEY_H            */    \
+        "i/I",          /* 0x0c HID_KEY_I            */    \
+        "j/J",          /* 0x0d HID_KEY_J            */    \
+        "k/K",          /* 0x0e HID_KEY_K            */    \
+        "l/L",          /* 0x0f HID_KEY_L            */    \
+        "m/M",          /* 0x10 HID_KEY_M            */    \
+        "n/N",          /* 0x11 HID_KEY_N            */    \
+        "o/O",          /* 0x12 HID_KEY_O            */    \
+        "p/P",          /* 0x13 HID_KEY_P            */    \
+        "q/Q",          /* 0x14 HID_KEY_Q            */    \
+        "r/R",          /* 0x15 HID_KEY_R            */    \
+        "s/S",          /* 0x16 HID_KEY_S            */    \
+        "t/T",          /* 0x17 HID_KEY_T            */    \
+        "u/U",          /* 0x18 HID_KEY_U            */    \
+        "v/V",          /* 0x19 HID_KEY_V            */    \
+        "w/W",          /* 0x1a HID_KEY_W            */    \
+        "x/X",          /* 0x1b HID_KEY_X            */    \
+        "y/Y",          /* 0x1c HID_KEY_Y            */    \
+        "z/Z",          /* 0x1d HID_KEY_Z            */    \
+        "1/!",          /* 0x1e HID_KEY_1            */    \
+        "2/@",          /* 0x1f HID_KEY_2            */    \
+        "3/#",          /* 0x20 HID_KEY_3            */    \
+        "4/$",          /* 0x21 HID_KEY_4            */    \
+        "5/%",          /* 0x22 HID_KEY_5            */    \
+        "6/^",          /* 0x23 HID_KEY_6            */    \
+        "7/&",          /* 0x24 HID_KEY_7            */    \
+        "8/*",          /* 0x25 HID_KEY_8            */    \
+        "9/(",          /* 0x26 HID_KEY_9            */    \
+        "0/)",          /* 0x27 HID_KEY_0            */    \
+        "\xEF\xA2\xA2", /* 0x28 HID_KEY_ENTER        */    \
+        "esc",          /* 0x29 HID_KEY_ESCAPE       */    \
+        "\xEF\x95\x9A", /* 0x2a HID_KEY_BACKSPACE    */    \
+        "tab",          /* 0x2b HID_KEY_TAB          */    \
+        "spa",          /* 0x2c HID_KEY_SPACE        */    \
+        "-/_",          /* 0x2d HID_KEY_MINUS        */    \
+        "=/+",          /* 0x2e HID_KEY_EQUAL        */    \
+        "[/{",          /* 0x2f HID_KEY_BRACKET_LEFT */    \
+        "]/}",          /* 0x30 HID_KEY_BRACKET_RIGHT*/    \
+        "\\/|",         /* 0x31 HID_KEY_BACKSLASH    */    \
+        "#",            /* 0x32 HID_KEY_EUROPE_1     */    \
+        ";/:",          /* 0x33 HID_KEY_SEMICOLON    */    \
+        "\"",           /* 0x34 HID_KEY_APOSTROPHE   */    \
+        "`/~",          /* 0x35 HID_KEY_GRAVE        */    \
+        ",/<",          /* 0x36 HID_KEY_COMMA        */    \
+        "./>",          /* 0x37 HID_KEY_PERIOD       */    \
+        "/\\?",         /* 0x38 HID_KEY_SLASH        */    \
+                                                           \
+        "cap", /* 0x39 HID_KEY_CAPS_LOCK   */              \
+        "f1",  /* 0x3a HID_KEY_F1          */              \
+        "f2",  /* 0x3b HID_KEY_F2          */              \
+        "f3",  /* 0x3c HID_KEY_F3          */              \
+        "f4",  /* 0x3d HID_KEY_F4          */              \
+        "f5",  /* 0x3e HID_KEY_F5          */              \
+        "f6",  /* 0x3f HID_KEY_F6          */              \
+        "f7",  /* 0x40 HID_KEY_F7          */              \
+        "f8",  /* 0x41 HID_KEY_F8          */              \
+        "f9",  /* 0x42 HID_KEY_F9          */              \
+        "f10", /* 0x43 HID_KEY_F10         */              \
+        "f11", /* 0x44 HID_KEY_F11         */              \
+        "f12", /* 0x45 HID_KEY_F12         */              \
+        "psc", /* 0x46 HID_KEY_PRINT_SCREEN*/              \
+        "scl", /* 0x47 HID_KEY_SCROLL_LOCK */              \
+        "pau", /* 0x48 HID_KEY_PAUSE       */              \
+        "ins", /* 0x49 HID_KEY_INSERT      */              \
+        "hom", /* 0x4a HID_KEY_HOME        */              \
+        "pup", /* 0x4b HID_KEY_PAGE_UP     */              \
+        "del", /* 0x4c HID_KEY_DELETE      */              \
+        "end", /* 0x4d HID_KEY_END         */              \
+        "pdo", /* 0x4e HID_KEY_PAGE_DOWN   */              \
+        "→",   /* 0x4f HID_KEY_ARROW_RIGHT */              \
+        "←",   /* 0x50 HID_KEY_ARROW_LEFT  */              \
+        "↓",   /* 0x51 HID_KEY_ARROW_DOWN  */              \
+        "↑",   /* 0x52 HID_KEY_ARROW_UP    */              \
+        "num", /* 0x53 HID_KEY_NUM_LOCK    */              \
+                                                           \
+        "/",            /* 0x54 HID_KEY_KEYPAD_DIVIDE   */ \
+        "*",            /* 0x55 HID_KEY_KEYPAD_MULTIPLY */ \
+        "-",            /* 0x56 HID_KEY_KEYPAD_SUBTRACT */ \
+        "+",            /* 0x57 HID_KEY_KEYPAD_ADD      */ \
+        "\xEF\xA2\xA2", /* 0x58 HID_KEY_KEYPAD_ENTER    */ \
+        "1",            /* 0x59 HID_KEY_KEYPAD_1        */ \
+        "2",            /* 0x5a HID_KEY_KEYPAD_2        */ \
+        "3",            /* 0x5b HID_KEY_KEYPAD_3        */ \
+        "4",            /* 0x5c HID_KEY_KEYPAD_4        */ \
+        "5",            /* 0x5d HID_KEY_KEYPAD_5        */ \
+        "6",            /* 0x5e HID_KEY_KEYPAD_6        */ \
+        "7",            /* 0x5f HID_KEY_KEYPAD_7        */ \
+        "8",            /* 0x60 HID_KEY_KEYPAD_8        */ \
+        "9",            /* 0x61 HID_KEY_KEYPAD_9        */ \
+        "0",            /* 0x62 HID_KEY_KEYPAD_0        */ \
+        ".",            /* 0x63 HID_KEY_KEYPAD_DECIMAL  */ \
+        "#2",           /* 0x64 HID_KEY_EUROPE_2        */ \
+        "app",          /* 0x65 HID_KEY_APPLICATION     */ \
+        "pow",          /* 0x66 HID_KEY_POWER           */ \
+        "=",            /* 0x67 HID_KEY_KEYPAD_EQUAL    */ \
+                                                           \
+        "f13", /* 0x68 HID_KEY_F13                */       \
+        "f14", /* 0x69 HID_KEY_F14                */       \
+        "f15", /* 0x6A HID_KEY_F15                */       \
+        "f16", /* 0x6B HID_KEY_F16                */       \
+        "f17", /* 0x6C HID_KEY_F17                */       \
+        "f18", /* 0x6D HID_KEY_F18                */       \
+        "f19", /* 0x6E HID_KEY_F19                */       \
+        "f20", /* 0x6F HID_KEY_F20                */       \
+        "f21", /* 0x70 HID_KEY_F21                */       \
+        "f22", /* 0x71 HID_KEY_F22                */       \
+        "f23", /* 0x72 HID_KEY_F23                */       \
+        "f24", /* 0x73 HID_KEY_F24                */       \
+        "exe", /* 0x74 HID_KEY_EXECUTE            */       \
+        "hel", /* 0x75 HID_KEY_HELP               */       \
+        "men", /* 0x76 HID_KEY_MENU               */       \
+        "sel", /* 0x77 HID_KEY_SELECT             */       \
+        "sto", /* 0x78 HID_KEY_STOP               */       \
+        "aga", /* 0x79 HID_KEY_AGAIN              */       \
+        "und", /* 0x7A HID_KEY_UNDO               */       \
+        "cut", /* 0x7B HID_KEY_CUT                */       \
+        "cpy", /* 0x7C HID_KEY_COPY               */       \
+        "pas", /* 0x7D HID_KEY_PASTE              */       \
+        "fid", /* 0x7E HID_KEY_FIND               */       \
+        "mut", /* 0x7F HID_KEY_MUTE               */       \
+        "vup", /* 0x80 HID_KEY_VOLUME_UP          */       \
+        "vdo", /* 0x81 HID_KEY_VOLUME_DOWN        */       \
+        "lca", /* 0x82 HID_KEY_LOCKING_CAPS_LOCK  */       \
+        "lnu", /* 0x83 HID_KEY_LOCKING_NUM_LOCK   */       \
+        "lsc", /* 0x84 HID_KEY_LOCKING_SCROLL_LOCK*/       \
+        "com", /* 0x85 HID_KEY_KEYPAD_COMMA       */       \
+        "eqs", /* 0x86 HID_KEY_KEYPAD_EQUAL_SIGN  */       \
+        "kj1"  /* 0x87 HID_KEY_KANJI1             */

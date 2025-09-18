@@ -40,7 +40,7 @@ uint16_t my_hid_report_valid_time_ms = 300; // 记得在启动一定时间后，
 
 uint8_t my_hid_report_change = 0;
 uint8_t _current_layer = MY_ORIGINAL_LAYER;
-uint8_t _swap_fn = 0; // 开启切换fn时，如果按下fn，触发原始层，默认为fn层
+uint8_t _swap_fn = 0; // 开启切换fn时，如果按下fn，触发原始层，默认为fn层，保存到rtc内存中，当深睡唤醒时保存状态，重启时恢复默认
 
 QueueHandle_t my_send_report_queue = NULL;
 // QueueHandle_t my_send_code_queue = NULL;
@@ -182,6 +182,9 @@ void my_keyboard_key_handler(my_key_info_t *key_info, uint8_t key_pressed)
         return;
     }
     my_kb_key_config_t *_cfg = &my_kb_keys_config[target_layer][key_info->type][key_info->id];
+    if (_cfg->type == MY_KEYCODE_NONE) {
+        _cfg = &my_kb_keys_config[MY_ORIGINAL_LAYER][key_info->type][key_info->id];
+    }
     if (_cfg->type <= MY_EMPTY_KEY) {
         if (key_pressed)
             my_kb_hid_report_add_key(_cfg);

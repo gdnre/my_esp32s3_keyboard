@@ -1,11 +1,13 @@
-#include "my_display.h"
-#include "my_lvgl_private.h"
-#include "my_config.h"
-#include "my_fat_mount.h"
 #include "esp_lvgl_port.h"
+#include "my_config.h"
+#include "my_display.h"
+#include "my_fat_mount.h"
+#include "my_lvgl_private.h"
 
 #include "esp_err.h"
 #include "esp_log.h"
+
+static const char *TAG = "my lv fs";
 
 bool my_lv_fs_ready_cb(lv_fs_drv_t *drv);
 void *my_lv_fs_open_cb(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mode);
@@ -49,22 +51,18 @@ bool my_lv_fs_ready_cb(lv_fs_drv_t *drv)
 
 void *my_lv_fs_open_cb(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mode)
 {
-    // 假设path格式为S:/folder/file.txt，不需要盘符
-   const char *target_path = path;
+    // 假设path格式为S:/folder/file.txt，到这一步时不需要盘符，但在使用lv...set_src时需要加上盘符
+    const char *target_path = path;
     FILE *fp = NULL;
-    if (mode == LV_FS_MODE_RD)
-    {
+    if (mode == LV_FS_MODE_RD) {
         fp = my_ffopen(target_path, "r");
     }
-    else if (mode == LV_FS_MODE_WR)
-    {
+    else if (mode == LV_FS_MODE_WR) {
         fp = my_ffopen(target_path, "w");
     }
-    else if (mode == (LV_FS_MODE_WR | LV_FS_MODE_RD))
-    {
+    else if (mode == (LV_FS_MODE_WR | LV_FS_MODE_RD)) {
         fp = my_ffopen(target_path, "r+");
     }
-
     return fp;
 }
 
@@ -72,8 +70,7 @@ lv_fs_res_t my_lv_fs_close_cb(lv_fs_drv_t *drv, void *file_p)
 {
     int ret = my_ffclose(file_p);
     file_p = NULL;
-    if (ret == 0)
-    {
+    if (ret == 0) {
         return LV_FS_RES_OK;
     };
     return LV_FS_RES_FS_ERR;
@@ -95,8 +92,7 @@ lv_fs_res_t my_lv_fs_write_cb(lv_fs_drv_t *drv, void *file_p, const void *buf, u
 
 lv_fs_res_t my_lv_fs_seek_cb(lv_fs_drv_t *drv, void *file_p, uint32_t pos, lv_fs_whence_t whence)
 {
-    if (my_ffseek(file_p, pos, whence) == 0)
-    {
+    if (my_ffseek(file_p, pos, whence) == 0) {
         return LV_FS_RES_OK;
     }
     return LV_FS_RES_FS_ERR;
@@ -106,8 +102,7 @@ lv_fs_res_t my_lv_fs_tell_cb(lv_fs_drv_t *drv, void *file_p, uint32_t *pos_p)
 {
     uint32_t pos = my_fftell(file_p);
     *pos_p = pos;
-    if (pos > 0)
-    {
+    if (pos > 0) {
         return LV_FS_RES_OK;
     }
     return LV_FS_RES_FS_ERR;

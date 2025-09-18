@@ -80,6 +80,15 @@ extern const char *controlDir_path;
 extern const char *control_index_path;
 extern const char *control_script_path;
 extern const char *control_style_path;
+
+extern const char *dev_html_path;
+extern const char *dev_script_path;
+extern const char *dev_style_path;
+
+extern const char *kbd_html_path;
+extern const char *kbd_script_path;
+extern const char *kbd_style_path;
+
 void my_fs_set_server_files();
 // 处理url中的特殊字符，将+替换为空格，将%xx中的xx以16进制转换为对应的字符值
 // 可以根据out_count来判断是否有解析特殊字符，如果出错，out_count为负数

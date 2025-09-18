@@ -12,6 +12,16 @@ dependencies:
     - esp32
     - esp32s3
     version: 1.2.6
+  espressif/cmake_utilities:
+    component_hash: 05165f30922b422b4b90c08845e6d449329b97370fbd06309803d8cb539d79e3
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=4.1'
+    source:
+      registry_url: https://components.espressif.com
+      type: service
+    version: 1.1.1
   espressif/esp_lvgl_port:
     component_hash: e720c95cf0667554a204591bb5fade4655fb2990465557041200fa44b5bc7556
     dependencies:
@@ -26,6 +36,34 @@ dependencies:
       registry_url: https://components.espressif.com/
       type: service
     version: 2.6.0
+  espressif/led_indicator:
+    component_hash: add9c251d9a16fe7ddaab25401179a33f5b47790e29709d171fb047e116bcfb9
+    dependencies:
+    - name: espressif/cmake_utilities
+      registry_url: https://components.espressif.com
+      require: private
+      version: '*'
+    - name: idf
+      require: private
+      version: '>=5.0'
+    - name: espressif/led_strip
+      registry_url: https://components.espressif.com
+      require: public
+      version: 3.*
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 2.0.1
+  espressif/led_strip:
+    component_hash: 223998f10cae6d81f2ad2dd3c1103c2221be298c708e37917482b0153f3ec64e
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.0'
+    source:
+      registry_url: https://components.espressif.com
+      type: service
+    version: 3.0.1~1
   espressif/mdns:
     component_hash: 3ec0af5f6bce310512e90f482388d21cc7c0e99668172d2f895356165fc6f7c5
     dependencies:
@@ -37,7 +75,7 @@ dependencies:
       type: service
     version: 1.8.2
   espressif/tinyusb:
-    component_hash: 10703da2c3cd39a944711ee3d320c6dda54debabf13b4b933a7c90daf102372b
+    component_hash: aa65639878f27a44d349044afd9c3fc134a92bd560874fdac1d836019b5c07ca
     dependencies:
     - name: idf
       require: private
@@ -49,13 +87,13 @@ dependencies:
     - esp32s2
     - esp32s3
     - esp32p4
-    version: 0.18.0~2
+    version: 0.18.0~4
   idf:
     source:
       type: idf
     version: 5.3.2
   k0i05/esp_type_utils:
-    component_hash: 0315aa7577c96037b601be7499c4b434d32d4ae381e90308ac0da3323e3887dc
+    component_hash: 95d8ec40268e045f7e264d8035f451e53844b4a2f6d5f112ece6645c5effd639
     dependencies:
     - name: idf
       require: private
@@ -63,10 +101,7 @@ dependencies:
     source:
       registry_url: https://components.espressif.com/
       type: service
-    targets:
-    - esp32
-    - esp32s3
-    version: 1.2.6
+    version: 1.2.7
   lvgl/lvgl:
     component_hash: b702d642e03e95928046d5c6726558e6444e112420c77efa5fdb6650b0a13c5d
     dependencies: []
@@ -88,9 +123,10 @@ dependencies:
 direct_dependencies:
 - esp_ina226
 - espressif/esp_lvgl_port
+- espressif/led_indicator
 - espressif/mdns
 - idf
 - my_esp_tinyusb
-manifest_hash: 44daf38c336292838ce407275133f454131d0f722b56270b64c0ec909fd2fca0
+manifest_hash: 083be7221950fcbafc0dc834d27df6885b8f413f82a870231361b42957d2cbe6
 target: esp32s3
 version: 2.0.0

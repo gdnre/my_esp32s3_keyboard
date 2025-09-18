@@ -5,6 +5,17 @@
 #include "my_file_server.h"
 static const char *TAG = "my fs private";
 
+// path: 文件路径变量， filename: 二进制文件名，它本身不是变量
+#define MY_BIN_FILE_WRITE(path, filename)                         \
+    if (!my_file_exist(path)) {                                   \
+        FILE *fp = my_ffopen(path, "w");                          \
+        if (fp) {                                                 \
+            MY_BINARY_FILE_DECLARE(filename);                     \
+            my_ffwrite(filename##_start, 1, filename##_size, fp); \
+            my_ffclose(fp);                                       \
+        }                                                         \
+    }
+
 void my_fs_set_server_files()
 {
     if (!my_file_exist(fileserverDir_path)) {
@@ -19,38 +30,13 @@ void my_fs_set_server_files()
             return;
         }
     }
-    if (!my_file_exist(fileserver_index_path)) {
-        FILE *fp = my_ffopen(fileserver_index_path, "w");
-        if (fp) {
-            MY_BINARY_FILE_DECLARE(index_html);
-            my_ffwrite(index_html_start, 1, index_html_size, fp);
-            my_ffclose(fp);
-        }
-    }
-    if (!my_file_exist(fileserver_script_path)) {
-        FILE *fp = my_ffopen(fileserver_script_path, "w");
-        if (fp) {
-            MY_BINARY_FILE_DECLARE(script_js);
-            my_ffwrite(script_js_start, 1, script_js_size, fp);
-            my_ffclose(fp);
-        }
-    }
-    if (!my_file_exist(fileserver_style_path)) {
-        FILE *fp = my_ffopen(fileserver_style_path, "w");
-        if (fp) {
-            MY_BINARY_FILE_DECLARE(style_css);
-            my_ffwrite(style_css_start, 1, style_css_size, fp);
-            my_ffclose(fp);
-        }
-    }
-    if (!my_file_exist(favicon_path)) {
-        FILE *fp = my_ffopen(favicon_path, "w");
-        if (fp) {
-            MY_BINARY_FILE_DECLARE(favicon_ico);
-            my_ffwrite(favicon_ico_start, 1, favicon_ico_size, fp);
-            my_ffclose(fp);
-        }
-    }
+
+    MY_BIN_FILE_WRITE(fileserver_index_path, index_html);
+    MY_BIN_FILE_WRITE(fileserver_script_path, script_js);
+    MY_BIN_FILE_WRITE(fileserver_style_path, style_css);
+
+    MY_BIN_FILE_WRITE(favicon_path, favicon_ico);
+
     if (!my_file_exist(controlDir_path)) {
         if (my_mkdir(controlDir_path, 0755) != 0) {
             ESP_LOGW(TAG, "create control dir %s failed", controlDir_path);
@@ -58,32 +44,17 @@ void my_fs_set_server_files()
         }
     }
 
-    if (!my_file_exist(control_index_path)) {
-        FILE *fp = my_ffopen(control_index_path, "w");
-        if (fp) {
-            MY_BINARY_FILE_DECLARE(control_html);
-            my_ffwrite(control_html_start, 1, control_html_size, fp);
-            my_ffclose(fp);
-        }
-    }
+    MY_BIN_FILE_WRITE(control_index_path, control_html);
+    MY_BIN_FILE_WRITE(control_script_path, control_js);
+    MY_BIN_FILE_WRITE(control_style_path, control_css);
 
-    if (!my_file_exist(control_script_path)) {
-        FILE *fp = my_ffopen(control_script_path, "w");
-        if (fp) {
-            MY_BINARY_FILE_DECLARE(control_js);
-            my_ffwrite(control_js_start, 1, control_js_size, fp);
-            my_ffclose(fp);
-        }
-    }
+    MY_BIN_FILE_WRITE(dev_html_path, dev_html);
+    MY_BIN_FILE_WRITE(dev_script_path, dev_js);
+    MY_BIN_FILE_WRITE(dev_style_path, dev_css);
 
-    if (!my_file_exist(control_style_path)) {
-        FILE *fp = my_ffopen(control_style_path, "w");
-        if (fp) {
-            MY_BINARY_FILE_DECLARE(control_css);
-            my_ffwrite(control_css_start, 1, control_css_size, fp);
-            my_ffclose(fp);
-        }
-    }
+    MY_BIN_FILE_WRITE(kbd_html_path, kbd_html);
+    MY_BIN_FILE_WRITE(kbd_script_path, kbd_js);
+    MY_BIN_FILE_WRITE(kbd_style_path, kbd_css);
 }
 
 int my_str_replace_char(char *str, size_t str_len, int old_char, int new_char, uint8_t direction, int max_count)

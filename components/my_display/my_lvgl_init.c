@@ -16,7 +16,6 @@
 #include "my_display.h"
 #include "my_lvgl_private.h"
 
-
 void my_lv_change_key_state_cb(lv_event_t *e);
 void my_lv_set_fn_layer_cb(lv_event_t *e);
 static const char *TAG = "my_lv_init";
@@ -35,12 +34,6 @@ lv_obj_t *buttonm[2] = {NULL, NULL};
 char **matrix_key_map[2] = {NULL, NULL};
 uint8_t kb_2nd_line_offset = MY_COL_NUM + 1; // 键盘第二行的按键偏移量，等于列数+1，即map中实际的列数
 
-void my_lv_set_background_png(lv_obj_t *scr)
-{
-    // lv_obj_t *img = lv_img_create(scr);
-    // lv_image_set_src(img,)
-}
-
 void my_lv_create_kb_buttonm(lv_obj_t *scr)
 {
     // lv_theme_t *theme = lv_theme_default_init(my_lv_display, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED), LV_THEME_DEFAULT_DARK, LV_FONT_DEFAULT);
@@ -49,8 +42,10 @@ void my_lv_create_kb_buttonm(lv_obj_t *scr)
     lv_style_t *style_buttonm_main = my_lv_style_get_buttonm_main();
     lv_style_t *style_buttonm_item = my_lv_style_get_buttonm_item();
 
-    matrix_key_map[0] = matrix_key_str_map[0];
-    matrix_key_map[1] = matrix_key_str_map[0] + kb_2nd_line_offset;
+    matrix_key_map[0] = matrix_key_str_map[my_cfg_fn_sw_state];
+    matrix_key_map[1] = matrix_key_str_map[my_cfg_fn_sw_state] + kb_2nd_line_offset;
+    // matrix_key_map[0] = matrix_key_str_map[0];
+    // matrix_key_map[1] = matrix_key_str_map[0] + kb_2nd_line_offset;
 
     LV_EVENT_MY_SET_FN_LAYER = lv_event_register_id();
     LV_EVENT_MY_KEY_STATE_PRESS = lv_event_register_id();
@@ -524,7 +519,6 @@ void my_lv_widget_check_all(uint8_t force_check)
     }
     lvgl_port_unlock();
 }
-
 #pragma endregion
 
 void my_lv_create_pop_window(const char *pop_text, uint32_t delete_delay_ms)

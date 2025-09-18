@@ -75,7 +75,7 @@ static TaskHandle_t wait_send_cb_tasks_handle[MY_ESPNOW_TASK_NUM] = {NULL, NULL}
 my_espnow_handle_p my_espnow_handle = NULL;
 wifi_bandwidth_t wifi_bw_before = WIFI_BW_HT20;
 
-#if MY_ESPNOW_IS_RECEIVER
+#if CONFIG_MY_DEVICE_IS_RECEIVER
 static my_espnow_fsm_state_handler_t my_espnow_fsm_recv_handlers[MY_ESPNOW_FSM_STATES_NUM] = {
     NULL,                               /*MY_ESPNOW_FSM_BLOCK*/
     my_espnow_fsm_scan_send_handler,    /*MY_ESPNOW_FSM_SCAN*/
@@ -113,7 +113,7 @@ esp_err_t my_espnow_re_pairing()
 {
     if (!my_espnow_handle)
         return ESP_ERR_NOT_ALLOWED;
-#if MY_ESPNOW_IS_RECEIVER
+#if CONFIG_MY_DEVICE_IS_RECEIVER
     if (s_handle.fsm_state == MY_ESPNOW_FSM_SCAN)
         return ESP_ERR_INVALID_STATE;
     s_handle.fsm_state = MY_ESPNOW_FSM_SCAN;
@@ -160,7 +160,7 @@ esp_err_t my_espnow_init()
     s_devices[0].peer_info.channel = 0;
     ESP_ERROR_CHECK(esp_now_add_peer(&s_devices[0].peer_info)); // 添加广播设备
     ESP_LOGI(TAG, "espnow start in channel %d", s_wifi_info.channel);
-#if MY_ESPNOW_IS_RECEIVER
+#if CONFIG_MY_DEVICE_IS_RECEIVER
     s_handle.fsm_state = MY_ESPNOW_FSM_SCAN;
 #else
     s_handle.fsm_state = MY_ESPNOW_FSM_WAIT_PAIRING;
@@ -433,7 +433,7 @@ void my_espnow_fsm_scan_send_handler(my_espnow_fsm_state_t enter_state, void *ta
     ESP_LOGI(TAG, "exit scan state");
 }
 
-#if MY_ESPNOW_IS_RECEIVER
+#if CONFIG_MY_DEVICE_IS_RECEIVER
 uint8_t empty_arr[MY_ESPNOW_DATA_PAY_LOAD_MAXLEN] = {0};
 int64_t last_get_dev_online_time = 0;
 int64_t last_send_check_online_time = 0;
@@ -449,7 +449,7 @@ void my_espnow_fsm_general_send_handler(my_espnow_fsm_state_t enter_state, void 
     TaskHandle_t t_handle = *((TaskHandle_t *)task_handle);
     int64_t cur_time = 0;
     ESP_LOGI(TAG, "fsm general send, enter state: %d", enter_state);
-#if !MY_ESPNOW_IS_RECEIVER
+#if !CONFIG_MY_DEVICE_IS_RECEIVER
     if (!s_wifi_info.espnow.connected) {
         if (my_espnow_send_data_default(MY_ESPNOW_DATA_TYPE_GET_HID_OUTPUT, 1, NULL, 0) == ESP_ERR_TIMEOUT)
             ESP_LOGW(TAG, "send queue timeout");
@@ -503,7 +503,7 @@ void my_espnow_fsm_general_send_handler(my_espnow_fsm_state_t enter_state, void 
                 vTaskDelay(pdMS_TO_TICKS(_last_time_ms));
             _retry--;
         } while (_retry > 0);
-#if MY_ESPNOW_IS_RECEIVER
+#if CONFIG_MY_DEVICE_IS_RECEIVER
         cur_time = esp_timer_get_time();
         if (_retry <= 0) { // 如果没有收到ack
             _dev->continuous_send_fail++;
@@ -553,7 +553,7 @@ void my_espnow_fsm_general_recv_handler(my_espnow_fsm_state_t enter_state, void 
     esp_err_t ret;
     int64_t cur_time = 0;
     while (s_handle.fsm_state == enter_state) {
-#if MY_ESPNOW_IS_RECEIVER
+#if CONFIG_MY_DEVICE_IS_RECEIVER
         cur_time = esp_timer_get_time();
         if (need_check_online && cur_time > last_send_check_online_time + 1000000) {
             if (my_espnow_send_data_default(MY_ESPNOW_DATA_TYPE_I_AM_ONLINE, 1, NULL, 0) == ESP_OK) {
@@ -571,7 +571,7 @@ void my_espnow_fsm_general_recv_handler(my_espnow_fsm_state_t enter_state, void 
             case MY_ESPNOW_DATA_TYPE_HID_INPUT:
                 uint8_t report_len = recv_buf.data.head.data_len - sizeof(my_espnow_data_head_t);
                 my_espnow_reciver_recv_input_report_cb((uint8_t *)recv_buf.data.payload, report_len);
-#if MY_ESPNOW_IS_RECEIVER
+#if CONFIG_MY_DEVICE_IS_RECEIVER
                 last_get_dev_online_time = esp_timer_get_time();
                 last_send_check_online_time = last_get_dev_online_time;
                 uint8_t *mem_check_start = NULL;

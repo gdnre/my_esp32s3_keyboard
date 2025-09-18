@@ -10,14 +10,22 @@
 #include "esp_lcd_panel_vendor.h"
 #include "esp_log.h"
 #include "esp_lvgl_port.h"
+#include <string.h>
 
 #include "my_config.h"
 #include "my_display.h"
+#include "my_fat_mount.h"
 #include "my_lvgl_private.h"
 
 static const char *TAG = "my display";
 uint8_t my_display_inited = 0;
 uint8_t my_lvgl_running = 0;
+
+lv_obj_t *my_lv_screens[MY_LV_SCREEN_NUM];
+uint8_t my_lv_screen_actually_num = 1;
+
+char my_bkImage0[256] = {0};
+char my_bkImage1[256] = {0};
 
 /* LCD IO and panel */
 esp_lcd_panel_io_handle_t my_lcd_io_handle = NULL;
@@ -54,8 +62,6 @@ esp_err_t my_pwm_set_duty(uint8_t duty_percentage)
         return ESP_ERR_NOT_ALLOWED;
     }
     esp_err_t ret = ESP_OK;
-    // lv_image_set_src(my_lv_display, );
-    // lv_image_dsc_t image_scr;
     uint32_t duty = my_pwm_percentage_to_duty(duty_percentage);
     ledc_set_duty(s_ledc_channel_cfg.speed_mode, s_ledc_channel_cfg.channel, duty);
     ret = ledc_update_duty(s_ledc_channel_cfg.speed_mode, s_ledc_channel_cfg.channel);
@@ -205,12 +211,31 @@ static void app_main_display(void)
     lvgl_port_lock(0);
 
     lv_obj_t *scr = lv_screen_active();
-
     lv_obj_set_scrollbar_mode(scr, LV_SCROLLBAR_MODE_OFF);
     lv_obj_remove_flag(scr, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_bg_color(scr, lv_palette_main(LV_PALETTE_BLUE), 0);
 
+    char my_lv_fs_letter[2] = {0, 0};
+    lv_fs_get_letters(my_lv_fs_letter);
+    my_lv_fs_letter[1] = '\0';
+
+    // // 动态解析文件系统中的图片消耗，有信息显示的屏幕先禁止设置背景图片
+    // if (my_bkImage0[0] != '\0' && my_file_exist(my_bkImage0)) {
+    //     char *img_path = malloc(strlen(my_bkImage0) + 3);
+    //     if (img_path) {
+    //         sprintf(img_path, "%c:%s", my_lv_fs_letter[0], my_bkImage0);
+    //         lv_obj_t *img = lv_image_create(scr);
+    //         if (img) {
+    //             lv_image_set_src(img, img_path);
+    //             lv_obj_center(img);
+    //             lv_image_set_scale_x(img, (uint32_t)(MY_LV_IMG_SIZE_OFFSET_X * 256));
+    //         }
+    //         free(img_path);
+    //     }
+    // }
+
     my_lv_widgets[MY_LV_WIDGET_SCR] = scr;
+    my_lv_screens[0] = scr;
     my_lv_create_kb_buttonm(my_lv_widgets[MY_LV_WIDGET_SCR]);
     my_lv_create_hardware_info_display(my_lv_widgets[MY_LV_WIDGET_SCR]);
     my_lv_create_power_supply_labels(my_lv_widgets[MY_LV_WIDGET_SCR]);
@@ -218,6 +243,55 @@ static void app_main_display(void)
     lv_obj_add_event_cb(lv_layer_top(), my_lv_pop_message_cb, LV_EVENT_MY_POP_MESSAGE, lv_layer_top());
 
     my_lv_widget_check_all(1);
+
+    if (MY_LV_SCREEN_NUM > 1) {
+        my_lv_widgets[MY_LV_WIDGET_SCR1] = lv_obj_create(NULL);
+        if (my_lv_widgets[MY_LV_WIDGET_SCR1]) {
+            my_lv_screen_actually_num = 2;
+            my_lv_screens[1] = my_lv_widgets[MY_LV_WIDGET_SCR1];
+            lv_obj_set_scrollbar_mode(my_lv_screens[1], LV_SCROLLBAR_MODE_OFF);
+            lv_obj_remove_flag(my_lv_screens[1], LV_OBJ_FLAG_SCROLLABLE);
+            lv_obj_set_style_bg_color(my_lv_screens[1], lv_palette_main(LV_PALETTE_GREY), 0);
+
+            if (my_bkImage1[0] != '\0' && my_file_exist(my_bkImage1)) {
+                char *img_path = malloc(strlen(my_bkImage1) + 3);
+                if (img_path) {
+                    sprintf(img_path, "%c:%s", my_lv_fs_letter[0], my_bkImage1);
+                    lv_obj_t *img = lv_image_create(my_lv_screens[1]);
+                    if (img) {
+                        lv_image_set_src(img, img_path);
+                        lv_obj_center(img);
+                        lv_image_set_scale_x(img, (uint32_t)(MY_LV_IMG_SIZE_OFFSET_X * 256));
+                    }
+                    free(img_path);
+                }
+            }
+        }
+
+        for (size_t i = 2; i < MY_LV_SCREEN_NUM; i++) {
+            my_lv_screens[i] = lv_obj_create(NULL);
+            if (my_lv_screens[i]) {
+                my_lv_screen_actually_num = i + 1;
+                lv_obj_set_scrollbar_mode(my_lv_screens[i], LV_SCROLLBAR_MODE_OFF);
+                lv_obj_remove_flag(my_lv_screens[i], LV_OBJ_FLAG_SCROLLABLE);
+                lv_obj_set_style_bg_color(my_lv_screens[i], lv_palette_main(LV_PALETTE_GREY), 0);
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    // 根据nvs中的设置加载默认屏幕，如果设置有问题，重置为0
+    if (my_cfg_lvScrIndex.data.u8 < my_lv_screen_actually_num) {
+        if (my_cfg_lvScrIndex.data.u8 != 0) {
+            lv_screen_load(my_lv_screens[my_cfg_lvScrIndex.data.u8]);
+        }
+    }
+    else {
+        my_cfg_lvScrIndex.data.u8 = 0;
+        my_cfg_save_config_to_nvs(&my_cfg_lvScrIndex);
+    }
 
     /* Task unlock */
     lvgl_port_unlock();
@@ -266,4 +340,33 @@ void my_display_stop(void)
 uint8_t my_lvgl_is_running(void)
 {
     return my_lvgl_running;
+}
+
+esp_err_t my_lv_switch_screen_2(uint8_t index)
+{
+    if (index < my_lv_screen_actually_num) {
+        lvgl_port_lock(0);
+        lv_screen_load(my_lv_screens[index]);
+        lvgl_port_unlock();
+        return ESP_OK;
+    }
+    else {
+        return ESP_FAIL;
+    }
+}
+
+esp_err_t my_lv_switch_screen()
+{
+    uint8_t index = my_cfg_lvScrIndex.data.u8;
+    index = (index + 1) % my_lv_screen_actually_num;
+    if (index != my_cfg_lvScrIndex.data.u8) {
+        lvgl_port_lock(0);
+        lv_screen_load(my_lv_screens[index]);
+        my_cfg_lvScrIndex.data.u8 = index;
+        lvgl_port_unlock();
+    }
+    else {
+        return ESP_ERR_INVALID_STATE;
+    }
+    return ESP_OK;
 }
