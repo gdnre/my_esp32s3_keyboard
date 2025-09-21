@@ -2,6 +2,7 @@
 #include "esp_err.h"
 #include "my_input_base.h"
 
+
 typedef enum {
     MY_USB_KEYBOARD_REPORT_CHANGE = (1 << 0),
     MY_BLE_KEYBOARD_REPORT_CHANGE = (1 << 1),

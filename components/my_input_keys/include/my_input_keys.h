@@ -5,6 +5,7 @@
 #include "my_matrix_keys.h"
 
 #define MY_KEY_SCAN_INTERVAL_MS 1 // 一次按键扫描结束到下次扫描开始的时间间隔
+#define MY_KEY_DEBOUNCE_US 1000 // 按键消抖时间，不需要消抖时则设置为0
 
 extern my_input_base_event_cb_t my_input_base_event_cbs[MY_INPUT_EVENT_NUM];
 

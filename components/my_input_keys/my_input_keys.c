@@ -116,6 +116,12 @@ int8_t my_input_key_io_init()
 uint8_t update_key_info(my_key_info_t *key, int8_t level)
 {
     int64_t now = esp_timer_get_time();
+
+    if (now - key->pressed_timer < MY_KEY_DEBOUNCE_US || now - key->released_timer < MY_KEY_DEBOUNCE_US) {// 按键消抖，之后考虑根据不同输入类型，设置不同的消抖时间
+        *my_input_task_info.continue_cycle_ptr = 1;
+        return 0;
+    }
+
     uint8_t key_active = 0;
     static uint8_t first_enter = 1;
     if (key->active_level == level) { // 按键按下

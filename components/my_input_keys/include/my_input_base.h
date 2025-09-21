@@ -61,7 +61,7 @@ typedef void (*my_input_key_event_cb_t)(my_input_key_event_t event, void *arg);
 typedef void (*my_input_base_event_cb_t)(my_input_base_event_t event);
 
 typedef struct {
-    uint16_t *continue_cycle_ptr;
+    uint16_t *continue_cycle_ptr; // 用于控制是否强制继续任务的按键检测循环
     uint16_t *active_cycle_count_ptr;
     uint16_t *active_key_num_ptr;
 } my_input_task_info_t;
