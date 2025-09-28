@@ -1,5 +1,9 @@
 # 简介
-本项目使用esp32s3作为主控芯片，在esp-idf平台开发，如果要全部功能同时开启，需要2MB psram以上的芯片版本，相关硬件将上传至嘉立创开源广场，[点击跳转](https://oshwhub.com/gdnre/esp32s3-san-mo-xiao-jian-pan)。
+本项目使用esp32s3作为主控芯片，在esp-idf平台开发，如果要全部功能同时开启，需要2MB psram以上的芯片版本。
+
+相关硬件将上传至嘉立创开源广场，[点击跳转](https://oshwhub.com/gdnre/esp32s3-san-mo-xiao-jian-pan)。
+
+视频介绍见bilibili，[点击跳转](https://www.bilibili.com/video/BV1VHJyz1EzP/)。
 ## 功能
 * 键盘为全键无冲，最高支持hid协议中编号0-135的键盘按键以及8个修饰键同时按下，支持所有consumer按键，但同时只能有一个被按下。
 * 不支持自定义组合键和宏等功能。
