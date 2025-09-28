@@ -110,7 +110,8 @@ static const blink_step_t color_rgb_ring_blink[] = {
  */
 static const blink_step_t flowing_blink[] = {
     {LED_BLINK_HSV, SET_IHSV(MAX_INDEX, 0, MAX_SATURATION, MAX_BRIGHTNESS), 0},
-    {LED_BLINK_HSV_RING, SET_IHSV(MAX_INDEX, MAX_HUE, MAX_SATURATION, MAX_BRIGHTNESS), 2000},
+    {LED_BLINK_HSV_RING, SET_IHSV(MAX_INDEX, 240, MAX_SATURATION, 127), 2000},
+    {LED_BLINK_HSV_RING, SET_IHSV(MAX_INDEX, 0, MAX_SATURATION, MAX_BRIGHTNESS), 2000},
     {LED_BLINK_LOOP, 0, 0},
 };
 
@@ -157,7 +158,7 @@ esp_err_t my_led_strips_init()
         .blink_lists = led_mode,
         .blink_list_num = BLINK_MAX,
     };
-
+    
     gpio_set_direction(MY_LED_POWER, GPIO_MODE_OUTPUT);
     gpio_set_level(MY_LED_POWER, MY_LED_ON_LEVEL);
     esp_err_t ret = led_indicator_new_strips_device(&config, &strips_config, &led_handle);
@@ -248,7 +249,7 @@ static esp_err_t my_led_strip_set_brightness_internal(uint32_t brightness, uint3
             uint8_t r_c = GET_RED(my_cfg_led_calibrate.data.u32);
             uint8_t g_c = GET_GREEN(my_cfg_led_calibrate.data.u32);
             uint8_t b_c = GET_BLUE(my_cfg_led_calibrate.data.u32);
-
+            
             r = (r * r_c / 255);
             g = (g * g_c / 255);
             b = (b * b_c / 255);
@@ -257,7 +258,7 @@ static esp_err_t my_led_strip_set_brightness_internal(uint32_t brightness, uint3
         r = (r * brightness / 255);
         g = (g * brightness / 255);
         b = (b * brightness / 255);
-        MY_LOGE("r:%d, g:%d, b:%d", r, g, b);
+
         // target_rgb = SET_IRGB(GET_INDEX(cur_rgb), r, g, b);
         target_rgb = SET_IRGB(MAX_INDEX, r, g, b);
         esp_err_t ret = led_indicator_set_rgb(led_handle, target_rgb);
