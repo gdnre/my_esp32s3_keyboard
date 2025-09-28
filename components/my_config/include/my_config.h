@@ -114,7 +114,7 @@ in  row3                                空
 #define MY_LED_ON_LEVEL 0
 // LED数据输入
 #define MY_LED_DIN 47
-#define MY_LED_COUNT 1
+#define MY_LED_COUNT 24
 
 ESP_EVENT_DECLARE_BASE(MY_CONFIG_EVENTS);
 ESP_EVENT_DECLARE_BASE(MY_STATE_CHANGE_EVENTS);

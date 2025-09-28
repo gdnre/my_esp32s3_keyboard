@@ -363,6 +363,9 @@ void my_config_switch_event_handler(void *event_handler_arg, esp_event_base_t ev
             case MY_CFG_EVENT_SWITCH_LED_BRIGHTNESS:
                 uint8_t led_bri = my_cfg_led_brightness.data.u8;
                 led_bri = (led_bri + 20) % 120;
+                if (led_bri > 100) {
+                    led_bri = 100;
+                }
                 my_led_set_brightness(led_bri);
                 my_cfg_led_brightness.data.u8 = led_bri;
                 my_cfg_save_config_to_nvs(&my_cfg_led_brightness);

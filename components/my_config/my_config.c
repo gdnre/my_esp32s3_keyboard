@@ -60,7 +60,7 @@ my_nvs_cfg_t my_cfg_lvScrIndex = {.name = "lvScrIndex", .size = 1, .is_ptr = 0, 
 my_nvs_cfg_t my_cfg_led_brightness = {.name = "ledBri", .size = 1, .is_ptr = 0, .data.u8 = 50};
 my_nvs_cfg_t my_cfg_led_mode = {.name = "ledMode", .size = 1, .is_ptr = 0, .data.u8 = 0xff};
 my_nvs_cfg_t my_cfg_led_color = {.name = "ledColor", .size = 4, .is_ptr = 0, .data.u32 = 0xD08CFF};
-my_nvs_cfg_t my_cfg_led_temperature = {.name = "ledTemp", .size = 4, .is_ptr = 0, .data.u32 = 0xffffffff};
+my_nvs_cfg_t my_cfg_led_temperature = {.name = "ledTemp", .size = 4, .is_ptr = 0, .data.u32 = 0xffffffff};// 不要用这个参数，保留备用
 my_nvs_cfg_t my_cfg_led_calibrate = {.name = "ledCali", .size = 4, .is_ptr = 0, .data.u32 = 0xFFB0F0};
 
 my_nvs_cfg_t *my_nvs_cfg_list_to_get[] = {&my_cfg_out_def_config, &my_cfg_usb, &my_cfg_ble, &my_cfg_use_display, &my_cfg_brightness, &my_cfg_wifi_mode, &my_cfg_sleep_time, &my_cfg_sleep_enable, &my_cfg_log_level, &my_cfg_lvScrIndex, &my_cfg_led_brightness, &my_cfg_led_mode, &my_cfg_led_color, &my_cfg_led_temperature, &my_cfg_led_calibrate, NULL};

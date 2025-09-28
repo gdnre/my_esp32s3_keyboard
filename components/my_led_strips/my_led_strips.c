@@ -73,7 +73,7 @@ static const blink_step_t breath_white_fast_blink[] = {
  */
 static const blink_step_t breath_blue_blink[] = {
     /*!< Set Color to blue and brightness to zero by H:240 S:255 V:0 */
-    {LED_BLINK_HSV, SET_HSV(240, MAX_SATURATION, 0), 0},
+    {LED_BLINK_HSV, SET_HSV(240, 255, 0), 0},
     {LED_BLINK_BREATHE, LED_STATE_ON, 1000},
     {LED_BLINK_BREATHE, LED_STATE_OFF, 1000},
     {LED_BLINK_LOOP, 0, 0},
@@ -234,34 +234,43 @@ static esp_err_t my_led_strip_set_on_off_internal(bool on_off)
     }
 }
 
+#define INSERT_RGB_INDEX(index, rgb) ((((index) & 0x7F) << 25) | ((rgb) & 0xFFFFFF))
 static esp_err_t my_led_strip_set_brightness_internal(uint32_t brightness, uint32_t cur_rgb)
 {
     if (led_handle) {
-        uint32_t target_rgb = cur_rgb;
+        uint32_t target_rgb = INSERT_RGB_INDEX(MAX_INDEX, cur_rgb);
+
+        uint8_t r = GET_RED(target_rgb);
+        uint8_t g = GET_GREEN(target_rgb);
+        uint8_t b = GET_BLUE(target_rgb);
 
         if (my_cfg_led_calibrate.data.u32) {
             uint8_t r_c = GET_RED(my_cfg_led_calibrate.data.u32);
             uint8_t g_c = GET_GREEN(my_cfg_led_calibrate.data.u32);
             uint8_t b_c = GET_BLUE(my_cfg_led_calibrate.data.u32);
 
-            uint8_t r = GET_RED(cur_rgb);
-            uint8_t g = GET_GREEN(cur_rgb);
-            uint8_t b = GET_BLUE(cur_rgb);
-
             r = (r * r_c / 255);
             g = (g * g_c / 255);
             b = (b * b_c / 255);
-
-            target_rgb = SET_IRGB(GET_INDEX(cur_rgb), r, g, b);
         }
 
+        r = (r * brightness / 255);
+        g = (g * brightness / 255);
+        b = (b * brightness / 255);
+        MY_LOGE("r:%d, g:%d, b:%d", r, g, b);
+        // target_rgb = SET_IRGB(GET_INDEX(cur_rgb), r, g, b);
+        target_rgb = SET_IRGB(MAX_INDEX, r, g, b);
         esp_err_t ret = led_indicator_set_rgb(led_handle, target_rgb);
-        if (my_cfg_led_temperature.data.u32 <= 0xffffff) {
-            uint32_t temp = my_cfg_led_temperature.data.u32 & 0xffffff;
-            temp = (GET_INDEX(cur_rgb) << 25) | temp;
-            led_indicator_set_color_temperature(led_handle, temp);
-        }
-        led_indicator_set_brightness(led_handle, INSERT_INDEX(MAX_INDEX, brightness));
+
+        // if (my_cfg_led_temperature.data.u32 <= 0xffffff) {// 调整色温，实际也是通过调整rgb值来实现，要调整就直接改校准值
+        //     uint32_t temp = my_cfg_led_temperature.data.u32 & 0xffffff;
+        //     // temp = INSERT_RGB_INDEX(GET_INDEX(target_rgb), temp);
+        //     temp = INSERT_RGB_INDEX(MAX_INDEX, temp);
+        //     led_indicator_set_color_temperature(led_handle, temp);
+        // }
+
+        // led_indicator_set_brightness(led_handle, INSERT_INDEX(GET_INDEX(target_rgb), brightness));
+        // led_indicator_set_brightness(led_handle, INSERT_INDEX(MAX_INDEX, brightness)); // 没法控制所有灯，不知道为啥，改成手动缩放rgb值
         return ret;
     }
     else {
@@ -317,12 +326,16 @@ esp_err_t my_led_set_mode(int led_mode)
         return ESP_FAIL;
     }
 
-    if (s_current_mode > 0 && s_current_mode < BLINK_MAX) { // 如果记录的当前模式是闪烁模式，先停止
-        my_led_strip_stop_blink_internal(s_current_mode);
+    if (s_current_mode >= 0) {
+        if (s_current_mode < BLINK_MAX) { // 如果记录的当前模式是闪烁模式，先停止
+            my_led_strip_stop_blink_internal(s_current_mode);
+        }
+        led_indicator_set_rgb(led_handle, INSERT_RGB_INDEX(MAX_INDEX, 0)); // 关闭所有led
     }
 
     s_current_mode = led_mode;
     if (led_mode == BLINK_MAX) { // 当模式等于BLINK_MAX时，关闭led
+        // led_indicator_set_rgb(led_handle, INSERT_RGB_INDEX(MAX_INDEX, 0)); // 这里关闭的上一个模式是控制所有led，所以不会有问题，如果不是控制所有led，不确定是否需要额外设置
         esp_err_t ret = led_indicator_set_on_off(led_handle, 0);
         if (_h) {
             gpio_set_level(MY_LED_POWER, !MY_LED_ON_LEVEL);
@@ -332,7 +345,7 @@ esp_err_t my_led_set_mode(int led_mode)
         }
         return ret;
     }
-    else { // 当模式为任意led开启模式时，先检查是否进行了初始化
+    else { // 当模式为任意led开启模式时，要将控制引脚设置为开
         gpio_set_level(MY_LED_POWER, MY_LED_ON_LEVEL);
         if (led_mode == MY_LED_STRIPS_SINGLE_COLOR) {
             return my_led_set_brightness(my_cfg_led_brightness.data.u8);
