@@ -27,16 +27,12 @@
         action;                                                   \
     }
 
-#define MY_MAX_GLOBAL_BRIGHTNESS 255
-
 typedef struct {
     led_strip_handle_t led_strip;
     uint32_t max_index;        /*!< Maximum LEDs in a single strip */
     led_indicator_ihsv_t ihsv; /*!< IHSV: I [0-127] 7 bits -  H [0-360] - 9 bits, S [0-255] - 8 bits, V [0-255] - 8 bits*/
-    uint32_t global_brightness;
+    uint32_t my_global_brightness;
 } led_strips_t;
-
-uint32_t my_global_brightness = MY_MAX_GLOBAL_BRIGHTNESS;
 
 static esp_err_t led_indicator_strips_init(void *param, void **ret_strips)
 {
@@ -48,7 +44,13 @@ static esp_err_t led_indicator_strips_init(void *param, void **ret_strips)
     led_strips_t *p_strip = calloc(1, sizeof(led_strips_t));
     LED_STRIPS_CHECK(NULL != p_strip, "calloc failed", return ESP_ERR_NO_MEM); // 本来跟下面顺序是反的，搞不懂为什么不先检查
     p_strip->max_index = cfg->led_strip_cfg.max_leds;
-    p_strip->global_brightness = MY_MAX_GLOBAL_BRIGHTNESS;
+    if (cfg->led_strip_cfg.my_initial_brightness == 0 || cfg->led_strip_cfg.my_initial_brightness > MY_MAX_GLOBAL_BRIGHTNESS) {
+        p_strip->my_global_brightness = MY_MAX_GLOBAL_BRIGHTNESS;
+    }
+    else {
+        p_strip->my_global_brightness = cfg->led_strip_cfg.my_initial_brightness;
+    }
+
     switch (cfg->led_strip_driver) {
 #if !CONFIG_IDF_TARGET_ESP32C2
         case LED_STRIP_RMT: {
@@ -95,16 +97,17 @@ static esp_err_t led_indicator_strips_set_on_off(void *strips, bool on_off)
     led_strips_t *p_strip = (led_strips_t *)strips;
     p_strip->ihsv.v = on_off ? MAX_BRIGHTNESS : 0;
     esp_err_t err = ESP_OK;
+    uint32_t _v = p_strip->ihsv.v * p_strip->my_global_brightness / MY_MAX_GLOBAL_BRIGHTNESS;
     if (p_strip->ihsv.i == MAX_INDEX) {
         for (int j = 0; j < p_strip->max_index; j++) {
-            err |= led_strip_set_pixel_hsv(p_strip->led_strip, j, p_strip->ihsv.h, p_strip->ihsv.s, p_strip->ihsv.v * p_strip->global_brightness / MY_MAX_GLOBAL_BRIGHTNESS);
+            err |= led_strip_set_pixel_hsv(p_strip->led_strip, j, p_strip->ihsv.h, p_strip->ihsv.s, _v);
             if (err != ESP_OK) {
                 return err;
             }
         }
     }
     else {
-        err |= led_strip_set_pixel_hsv(p_strip->led_strip, p_strip->ihsv.i, p_strip->ihsv.h, p_strip->ihsv.s, p_strip->ihsv.v);
+        err |= led_strip_set_pixel_hsv(p_strip->led_strip, p_strip->ihsv.i, p_strip->ihsv.h, p_strip->ihsv.s, _v);
     }
 
     err |= led_strip_refresh(p_strip->led_strip);
@@ -123,6 +126,12 @@ static esp_err_t led_indicator_strips_set_rgb(void *strips, uint32_t irgb_value)
     r = GET_RED(irgb_value);
     g = GET_GREEN(irgb_value);
     b = GET_BLUE(irgb_value);
+
+    if (p_strip->my_global_brightness < MY_MAX_GLOBAL_BRIGHTNESS) {
+        r = r * p_strip->my_global_brightness / MY_MAX_GLOBAL_BRIGHTNESS;
+        g = g * p_strip->my_global_brightness / MY_MAX_GLOBAL_BRIGHTNESS;
+        b = b * p_strip->my_global_brightness / MY_MAX_GLOBAL_BRIGHTNESS;
+    }
 
     esp_err_t err = ESP_OK;
     if (i == MAX_INDEX) {
@@ -152,17 +161,19 @@ static esp_err_t led_indicator_strips_set_hsv(void *strips, uint32_t ihsv_value)
     led_strips_t *p_strip = (led_strips_t *)strips;
     p_strip->ihsv.value = ihsv_value;
 
+    uint32_t _v = p_strip->ihsv.v * p_strip->my_global_brightness / MY_MAX_GLOBAL_BRIGHTNESS;
+
     esp_err_t err = ESP_OK;
     if (p_strip->ihsv.i == MAX_INDEX) {
         for (int j = 0; j < p_strip->max_index; j++) {
-            err |= led_strip_set_pixel_hsv(p_strip->led_strip, j, p_strip->ihsv.h, p_strip->ihsv.s, p_strip->ihsv.v);
+            err |= led_strip_set_pixel_hsv(p_strip->led_strip, j, p_strip->ihsv.h, p_strip->ihsv.s, _v);
             if (err != ESP_OK) {
                 return err;
             }
         }
     }
     else {
-        err |= led_strip_set_pixel_hsv(p_strip->led_strip, p_strip->ihsv.i, p_strip->ihsv.h, p_strip->ihsv.s, p_strip->ihsv.v);
+        err |= led_strip_set_pixel_hsv(p_strip->led_strip, p_strip->ihsv.i, p_strip->ihsv.h, p_strip->ihsv.s, _v);
     }
 
     err |= led_strip_refresh(p_strip->led_strip);
@@ -179,17 +190,20 @@ static esp_err_t led_indicator_strips_set_brightness(void *strips, uint32_t ihsv
     p_strip->ihsv.i = GET_INDEX(ihsv);
     p_strip->ihsv.v = GET_BRIGHTNESS(ihsv);
 
+    // uint32_t _v = p_strip->ihsv.v * p_strip->my_global_brightness / MY_MAX_GLOBAL_BRIGHTNESS;
+    uint32_t _v = p_strip->ihsv.v;
+
     esp_err_t err = ESP_OK;
     if (p_strip->ihsv.i == MAX_INDEX) {
         for (int j = 0; j < p_strip->max_index; j++) {
-            err |= led_strip_set_pixel_hsv(p_strip->led_strip, j, p_strip->ihsv.h, p_strip->ihsv.s, p_strip->ihsv.v);
+            err |= led_strip_set_pixel_hsv(p_strip->led_strip, j, p_strip->ihsv.h, p_strip->ihsv.s, _v);
             if (err != ESP_OK) {
                 return err;
             }
         }
     }
     else {
-        err |= led_strip_set_pixel_hsv(p_strip->led_strip, p_strip->ihsv.i, p_strip->ihsv.h, p_strip->ihsv.s, p_strip->ihsv.v);
+        err |= led_strip_set_pixel_hsv(p_strip->led_strip, p_strip->ihsv.i, p_strip->ihsv.h, p_strip->ihsv.s, _v);
     }
 
     err |= led_strip_refresh(p_strip->led_strip);
@@ -197,6 +211,25 @@ static esp_err_t led_indicator_strips_set_brightness(void *strips, uint32_t ihsv
         return err;
     }
 
+    return ESP_OK;
+}
+
+uint32_t my_led_indicator_strips_get_global_brightness(void *strips)
+{
+    if (!strips) {
+        return UINT32_MAX;
+    }
+    led_strips_t *p_strip = (led_strips_t *)strips;
+    return p_strip->my_global_brightness;
+}
+
+esp_err_t my_led_indicator_strips_set_global_brightness(void *strips, uint32_t brightness)
+{
+    if (!strips) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    led_strips_t *p_strip = (led_strips_t *)strips;
+    p_strip->my_global_brightness = brightness > MY_MAX_GLOBAL_BRIGHTNESS ? MY_MAX_GLOBAL_BRIGHTNESS : brightness;
     return ESP_OK;
 }
 

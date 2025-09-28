@@ -15,6 +15,8 @@
 extern "C" {
 #endif
 
+#define MY_MAX_GLOBAL_BRIGHTNESS 255
+
 /**
  * @brief led strip driver type
  *

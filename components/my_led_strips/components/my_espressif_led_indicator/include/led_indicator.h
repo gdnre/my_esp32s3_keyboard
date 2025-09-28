@@ -188,6 +188,10 @@ esp_err_t led_indicator_set_rgb(led_indicator_handle_t handle, uint32_t irgb_val
  */
 esp_err_t led_indicator_set_color_temperature(led_indicator_handle_t handle, const uint32_t temperature);
 
+uint32_t my_led_indicator_get_global_brightness(led_indicator_handle_t handle);
+// 亮度会在下次更新色彩时被应用
+esp_err_t my_led_indicator_set_global_brightness(led_indicator_handle_t handle, uint32_t brightness);
+
 #ifdef __cplusplus
 }
 #endif

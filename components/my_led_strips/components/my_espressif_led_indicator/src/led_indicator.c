@@ -622,6 +622,26 @@ uint8_t led_indicator_get_brightness(led_indicator_handle_t handle)
     return fade_value;
 }
 
+uint32_t my_led_indicator_get_global_brightness(led_indicator_handle_t handle)
+{
+    LED_INDICATOR_CHECK(handle != NULL, "invalid p_handle", return 0);
+    _led_indicator_t *p_led_indicator = (_led_indicator_t *)handle;
+    xSemaphoreTake(p_led_indicator->mutex, portMAX_DELAY);
+    uint32_t brightness = my_led_indicator_strips_get_global_brightness(p_led_indicator->hardware_data);
+    xSemaphoreGive(p_led_indicator->mutex);
+    return brightness;
+}
+
+esp_err_t my_led_indicator_set_global_brightness(led_indicator_handle_t handle, uint32_t brightness)
+{
+    LED_INDICATOR_CHECK(handle != NULL, "invalid p_handle", return ESP_ERR_INVALID_ARG);
+    _led_indicator_t *p_led_indicator = (_led_indicator_t *)handle;
+    xSemaphoreTake(p_led_indicator->mutex, portMAX_DELAY);
+    esp_err_t ret = my_led_indicator_strips_set_global_brightness(p_led_indicator->hardware_data, brightness);
+    xSemaphoreGive(p_led_indicator->mutex);
+    return ret;
+}
+
 esp_err_t led_indicator_set_on_off(led_indicator_handle_t handle, bool on_off)
 {
     LED_INDICATOR_CHECK(handle != NULL, "invalid p_handle", return ESP_ERR_INVALID_ARG);

@@ -109,9 +109,9 @@ static const blink_step_t color_rgb_ring_blink[] = {
  *
  */
 static const blink_step_t flowing_blink[] = {
-    {LED_BLINK_HSV, SET_IHSV(MAX_INDEX, 0, MAX_SATURATION, MAX_BRIGHTNESS), 0},
-    {LED_BLINK_HSV_RING, SET_IHSV(MAX_INDEX, 240, MAX_SATURATION, 127), 2000},
-    {LED_BLINK_HSV_RING, SET_IHSV(MAX_INDEX, 0, MAX_SATURATION, MAX_BRIGHTNESS), 2000},
+    {LED_BLINK_HSV, SET_IHSV(MAX_INDEX, 6, MAX_SATURATION, MAX_BRIGHTNESS), 0},
+    {LED_BLINK_HSV_RING, SET_IHSV(MAX_INDEX, 240, MAX_SATURATION, MAX_BRIGHTNESS), 3000},
+    {LED_BLINK_HSV_RING, SET_IHSV(MAX_INDEX, 6, MAX_SATURATION, MAX_BRIGHTNESS), 3000},
     {LED_BLINK_LOOP, 0, 0},
 };
 
@@ -139,6 +139,7 @@ esp_err_t my_led_strips_init()
         .color_component_format = LED_STRIP_COLOR_COMPONENT_FMT_GRB, // Pixel format of your LED strip
         .led_model = LED_MODEL_WS2812,                               // LED strip model
         .flags.invert_out = false,                                   // whether to invert the output signal
+        .my_initial_brightness = my_cfg_led_brightness.data.u8 > 0 ? my_cfg_led_brightness.data.u8 : 3,
     };
 
     // LED strip backend configuration: RMT
@@ -158,7 +159,7 @@ esp_err_t my_led_strips_init()
         .blink_lists = led_mode,
         .blink_list_num = BLINK_MAX,
     };
-    
+
     gpio_set_direction(MY_LED_POWER, GPIO_MODE_OUTPUT);
     gpio_set_level(MY_LED_POWER, MY_LED_ON_LEVEL);
     esp_err_t ret = led_indicator_new_strips_device(&config, &strips_config, &led_handle);
@@ -205,108 +206,31 @@ static esp_err_t my_led_strip_stop_blink_internal(int blink_type)
     }
 }
 
-static esp_err_t my_led_strip_start_blink_preempt_internal(int blink_type)
-{
-    if (led_handle) {
-        return led_indicator_preempt_start(led_handle, blink_type);
-    }
-    else {
-        return ESP_ERR_INVALID_STATE;
-    }
-}
-
-static esp_err_t my_led_strip_stop_blink_preempt_internal(int blink_type)
-{
-    if (led_handle) {
-        return led_indicator_preempt_stop(led_handle, blink_type);
-    }
-    else {
-        return ESP_ERR_INVALID_STATE;
-    }
-}
-
-static esp_err_t my_led_strip_set_on_off_internal(bool on_off)
-{
-    if (led_handle) {
-        return led_indicator_set_on_off(led_handle, on_off);
-    }
-    else {
-        return ESP_ERR_INVALID_STATE;
-    }
-}
-
 #define INSERT_RGB_INDEX(index, rgb) ((((index) & 0x7F) << 25) | ((rgb) & 0xFFFFFF))
-static esp_err_t my_led_strip_set_brightness_internal(uint32_t brightness, uint32_t cur_rgb)
-{
-    if (led_handle) {
-        uint32_t target_rgb = INSERT_RGB_INDEX(MAX_INDEX, cur_rgb);
-
-        uint8_t r = GET_RED(target_rgb);
-        uint8_t g = GET_GREEN(target_rgb);
-        uint8_t b = GET_BLUE(target_rgb);
-
-        if (my_cfg_led_calibrate.data.u32) {
-            uint8_t r_c = GET_RED(my_cfg_led_calibrate.data.u32);
-            uint8_t g_c = GET_GREEN(my_cfg_led_calibrate.data.u32);
-            uint8_t b_c = GET_BLUE(my_cfg_led_calibrate.data.u32);
-            
-            r = (r * r_c / 255);
-            g = (g * g_c / 255);
-            b = (b * b_c / 255);
-        }
-
-        r = (r * brightness / 255);
-        g = (g * brightness / 255);
-        b = (b * brightness / 255);
-
-        // target_rgb = SET_IRGB(GET_INDEX(cur_rgb), r, g, b);
-        target_rgb = SET_IRGB(MAX_INDEX, r, g, b);
-        esp_err_t ret = led_indicator_set_rgb(led_handle, target_rgb);
-
-        // if (my_cfg_led_temperature.data.u32 <= 0xffffff) {// 调整色温，实际也是通过调整rgb值来实现，要调整就直接改校准值
-        //     uint32_t temp = my_cfg_led_temperature.data.u32 & 0xffffff;
-        //     // temp = INSERT_RGB_INDEX(GET_INDEX(target_rgb), temp);
-        //     temp = INSERT_RGB_INDEX(MAX_INDEX, temp);
-        //     led_indicator_set_color_temperature(led_handle, temp);
-        // }
-
-        // led_indicator_set_brightness(led_handle, INSERT_INDEX(GET_INDEX(target_rgb), brightness));
-        // led_indicator_set_brightness(led_handle, INSERT_INDEX(MAX_INDEX, brightness)); // 没法控制所有灯，不知道为啥，改成手动缩放rgb值
-        return ret;
-    }
-    else {
-        return ESP_ERR_INVALID_STATE;
-    }
-}
-
-static esp_err_t my_led_strip_set_rgb_internal(uint32_t rgb_value)
-{
-    if (led_handle) {
-        return led_indicator_set_rgb(led_handle, rgb_value);
-    }
-    else {
-        return ESP_ERR_INVALID_STATE;
-    }
-}
 
 esp_err_t my_led_set_brightness(uint8_t bri_percentage)
 {
-    if (s_current_mode != MY_LED_STRIPS_SINGLE_COLOR) {
+    if (!led_handle || s_current_mode == BLINK_MAX || s_current_mode < 0) {
         return ESP_ERR_INVALID_STATE;
     }
 
     uint32_t target_brightness = 255;
     if (bri_percentage < 100) {
-        if (bri_percentage <= 10) {
-            // 如果亮度设置为0，则等于关闭，没有意义，所以强制设置为1
-            target_brightness = 25;
+        if (bri_percentage <= 1) {
+            // 如果亮度设置为0，则等于关闭，没有意义，所以强制设置为大于0的值
+            target_brightness = 3;
         }
         else {
             target_brightness = bri_percentage * 255 / 100;
         }
     }
-
-    return my_led_strip_set_brightness_internal(target_brightness, my_cfg_led_color.data.u32);
+    my_led_indicator_set_global_brightness(led_handle, target_brightness);
+    if (s_current_mode == MY_LED_STRIPS_SINGLE_COLOR) {
+        return led_indicator_set_rgb(led_handle, INSERT_RGB_INDEX(MAX_INDEX, my_cfg_led_color.data.u32));
+    }
+    else {
+        return ESP_OK;
+    }
 }
 
 esp_err_t my_led_set_mode(int led_mode)

@@ -56,3 +56,6 @@ esptool write-flash @flash_project_args
 * my_wifi_start组件：控制ap、sta、espnow功能的开关和行为，也管理http服务器等依赖wifi的功能的开关。
 * my_usb组件：管理usb的hid和msc功能，键盘的hid报告也由该组件管理（更合理的结构应该将hid报告分离出来）。
 * my_ble_hid组件：管理蓝牙的hid功能，本身没有管理hid报告，和my_usb组件共用一份hid报告。
+
+# 更新日志
+* 2025.9.29：支持rgb全局亮度调节，因为使用rgb等比缩放实现，注意低亮度时，部分颜色无法缩放到理想值。
