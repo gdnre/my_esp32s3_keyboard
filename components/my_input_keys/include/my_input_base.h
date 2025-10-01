@@ -79,12 +79,13 @@ typedef struct // 用于记录一个物理按键的信息
     struct
     {
         uint8_t layer_mask;    // 用于my_keyboard的数据，对于需要释放的按键，比如标准键盘按键，按下后应该锁定当前层，确保释放时fn层正确，按下时，将层设置为_current_layer，释放时设置为layer_mask
-        uint8_t trigger_count; // 可以用于长按按住时，触发了多少次
+        uint8_t trigger_count; // 可以用于记录长按按住时，触发了多少次
     } user_data;
     my_input_key_event_cb_t event_cbs[MY_KEY_EVENT_NUM]; // 按键回调数组
 } my_key_info_t;
 
 extern TaskHandle_t my_input_task_handle;
+// 经过该时间后被认为是长按
 extern int32_t long_pressed_time_us;
 
 /// @brief 更新按键信息，切换按键状态，执行回调等

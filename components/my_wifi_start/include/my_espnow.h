@@ -129,7 +129,9 @@ esp_err_t my_espnow_send_data_default(my_espnow_data_type_t data_type, uint8_t n
 esp_err_t my_espnow_send_hid_output_report(uint8_t *data_with_id, uint8_t data_len);
 esp_err_t my_espnow_send_hid_input_report(uint8_t *data_with_id, uint8_t data_len);
 
+// 接收器接收到数据后，通过usb向键盘发送键盘报告的回调
 void my_espnow_reciver_recv_input_report_cb(uint8_t *data, uint8_t data_len);
+// 接收器接收到主机发送的输出报文后，向设备同步输出报文
 void my_espnow_reciver_recv_get_output_cb();
 void my_espnow_device_recv_output_report_cb(uint8_t *data, uint8_t data_len);
 

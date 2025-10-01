@@ -24,7 +24,14 @@ const KEY_CONFIG_SCHEMA = {
         5: { name: "fn键", hasValue: false },
         6: { name: "fn2键", hasValue: false },
         7: { name: "切换fn键", hasValue: false },
-        8: { name: "设备控制按键码", hasValue: true, valueType: "devControlCode" }
+        8: { name: "设备控制按键码", hasValue: true, valueType: "devControlCode" },
+        9: { name: "鼠标按键", hasValue: true, valueType: "mouseButtonCode" },
+        10: { name: "鼠标指针x方向移动", hasValue: true, valueType: "valueRange127" },
+        11: { name: "鼠标指针y方向移动", hasValue: true, valueType: "valueRange127" },
+        12: { name: "鼠标滚轮上下", hasValue: true, valueType: "valueRange127" },
+        13: { name: "鼠标滚轮左右", hasValue: true, valueType: "valueRange127" },
+        14: { name: "鼠标指针x方向绝对位置", hasValue: true, valueType: "valueRange0x7fff" },
+        15: { name: "鼠标指针y方向绝对位置", hasValue: true, valueType: "valueRange0x7fff" }
     },
 
     valueLabels: {
@@ -312,6 +319,22 @@ const KEY_CONFIG_SCHEMA = {
             14: "切换屏幕桌面",
             15: "切换led灯模式",
             16: "切换led灯亮度",
+        },
+        mouseButtonCode: {
+            1: "左键",
+            2: "右键",
+            3: "中键",
+            4: "向后键",
+            5: "向前键",
+        },
+        valueRange127: {
+            [-127]: "-127最小值",
+            0: "0",
+            127: "127最大值"
+        },
+        valueRange0x7fff: {
+            0: "0最小值",
+            32767: "32767最大值"
         }
     }
 };
@@ -734,7 +757,7 @@ function renderKeyDisplay(keyConfig) {
         else {
             // 尝试获取值名的集合
             let keyNames = KEY_CONFIG_SCHEMA.valueLabels[typeInfo.valueType];
-            // 如果不存在值名集合，使用类型名:值作为显示文本，理论上不该存在这种情况 
+            // 如果不存在值名集合，使用类型名:值作为显示文本
             if (!keyNames) {
                 displayText = `${typeInfo.name}:${keyConfig.value}`;
             }
@@ -833,7 +856,7 @@ function openConfigPanel(keyEl) {
 function bindPanelEvents(panel, originalConfig) {
     const typeSelect = panel.querySelector('.key-type-select');
     const valueSearch = panel.querySelector('.value-search');
-    
+
     // 阻止面板内部元素的点击事件冒泡
     panel.querySelectorAll('select, input, option').forEach(element => {
         element.addEventListener('click', (e) => {

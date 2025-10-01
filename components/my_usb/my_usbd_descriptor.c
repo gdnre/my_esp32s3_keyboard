@@ -9,7 +9,7 @@
 #pragma region msc描述符
 // msc字符串描述符
 char const *string_msc_desc_arr[] = {
-    MY_USBD_STR_DESC,
+    MY_USBD_MSC_STR_DESC,
     "esp32s3 MSC", // 4. MSC
 };
 uint8_t string_msc_desc_arr_size = sizeof(string_msc_desc_arr) / sizeof(string_msc_desc_arr[0]);
@@ -68,11 +68,11 @@ tusb_desc_device_t my_hid_device_descriptor = {
     .iSerialNumber = 0x03,
     .bNumConfigurations = 0x01};
 
-#define MY_KB_HID_DESCRIPTOR                                                                        \
+#define MY_KB_HID_DESCRIPTOR(reportid)                                                              \
     0x05, 0x01,                                            /* Usage Page (Generic Desktop Ctrls) */ \
         0x09, 0x06,                                        /* Usage (Keyboard) */                   \
         0xA1, 0x01,                                        /* Collection (Application) */           \
-        0x85, MY_REPORTID_KEYBOARD,                        /*   Report ID (1) */                    \
+        0x85, reportid,                                    /*   Report ID (1) */                    \
         0x05, 0x07,                                        /*   Usage Page (Kbrd/Keypad) */         \
         0x15, 0x00,                                        /*   Logical Minimum (0) */              \
         0x25, 0x01, /*Logical Maximum (1) */               /* Modifier Keys 1B */                   \
@@ -101,8 +101,11 @@ tusb_desc_device_t my_hid_device_descriptor = {
 
 // hid报告描述符
 const uint8_t hid_report_descriptor[] = {
-    MY_KB_HID_DESCRIPTOR,
-    TUD_HID_REPORT_DESC_CONSUMER(HID_REPORT_ID(MY_REPORTID_CONSUMER))};
+    MY_KB_HID_DESCRIPTOR(MY_REPORTID_KEYBOARD),
+    TUD_HID_REPORT_DESC_CONSUMER(HID_REPORT_ID(MY_REPORTID_CONSUMER)),
+    TUD_HID_REPORT_DESC_MOUSE(HID_REPORT_ID(MY_REPORTID_MOUSE)),
+    TUD_HID_REPORT_DESC_ABSMOUSE(HID_REPORT_ID(MY_REPORTID_ABSMOUSE)),
+};
 
 uint16_t hid_report_descriptor_len = sizeof(hid_report_descriptor);
 
@@ -111,52 +114,7 @@ const uint8_t hid_configuration_descriptor[] = {
     // Configuration number, interface count, string index, total length, attribute, power in mA
     TUD_CONFIG_DESCRIPTOR(1, 1, 0, TUSB_DESC_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 500),
     // Interface number, string index, boot protocol, report descriptor len, EP In address, size & polling interval
-    TUD_HID_INOUT_DESCRIPTOR(0, 4, false, sizeof(hid_report_descriptor), EDPT_OUT_01, EDPT_IN_01, CFG_TUD_ENDPOINT0_SIZE, 1)};
+    TUD_HID_INOUT_DESCRIPTOR(0, 4, false, sizeof(hid_report_descriptor), EDPT_OUT_01, EDPT_IN_01, CFG_TUD_ENDPOINT0_SIZE, 1),
+};
 
 #pragma endregion
-
-// const char my_kb_hid_descriptor[] =
-//     {
-//         0x05, 0x01, // Usage Page (Generic Desktop Ctrls)
-//         0x09, 0x06, // Usage (Keyboard)
-//         0xA1, 0x01, // Collection (Application)
-
-//         0x85, MY_REPORTID_KEYBOARD, //   Report ID (99)
-//         0x05, 0x07,                 //   Usage Page (Kbrd/Keypad)
-//         0x15, 0x00,                 //   Logical Minimum (0)
-//         0x25, 0x01,                 //   Logical Maximum (1)
-
-//         // 修饰键 1B
-//         0x19, 0xE0, //   Usage Minimum (0xE0)
-//         0x29, 0xE7, //   Usage Maximum (0xE7)
-//         0x75, 0x01, //   Report Size (1)
-//         0x95, 0x08, //   Report Count (8)
-//         0x81, 0x02, //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
-
-//         // 保留 1B
-//         0x75, 0x01, //   Report Size (1)
-//         0x95, 0x08, //   Report Count (8)
-//         0x81, 0x03, //   Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
-
-//         // led状态（主机到设备） 1B
-//         0x05, 0x08, //   Usage Page (LEDs)
-//         0x19, 0x01, //   Usage Minimum (Num Lock)
-//         0x29, 0x08, //   Usage Maximum (Do Not Disturb)
-//         0x75, 0x01, //   Report Size (1)
-//         0x95, 0x08, //   Report Count (8)
-//         0x91, 0x02, //   Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
-
-//         // 按键 17B
-//         0x05, 0x07, //   Usage Page (Kbrd/Keypad)
-//         0x19, 0x00, //   Usage Minimum (0x00)
-//         0x29, 0x87, //   Usage Maximum (0x87)
-//         0x75, 0x01, //   Report Size (1)
-//         0x95, 0x88, //   Report Count (136)
-//         0x81, 0x02, //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
-
-//         0xC0, // End Collection
-//               // 54 bytes
-// };
-
-// const char my_consumer_hid_descriptor[] = {
-//     TUD_HID_REPORT_DESC_CONSUMER(HID_REPORT_ID(MY_REPORTID_CONSUMER))};

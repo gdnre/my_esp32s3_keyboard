@@ -9,11 +9,21 @@ typedef enum {
     MY_REPORTID_SYSTEM,
     MY_REPORTID_MOUSE,
     MY_REPORTID_GAMEPAD,
-    // MY_REPORTID_LIGHTING,
-    // MY_REPORTID_ABSMOUSE,
+    MY_REPORTID_LIGHTING,
+    MY_REPORTID_ABSMOUSE,
     // MY_REPORTID_GENERIC_INOUT,
     // MY_REPORTID_FIDO_U2F,
 } my_report_id_t;
+
+typedef enum {
+    MY_MOUSE_BUTTON_HID_CODE_MIN = 0x01,
+    MY_MOUSE_BUTTON_HID_CODE_LEFT = 0x01,
+    MY_MOUSE_BUTTON_HID_CODE_RIGHT = 0x02,
+    MY_MOUSE_BUTTON_HID_CODE_MIDDLE = 0x03,
+    MY_MOUSE_BUTTON_HID_CODE_BACKWARD = 0x04,
+    MY_MOUSE_BUTTON_HID_CODE_FORWARD = 0x05,
+    MY_MOUSE_BUTTON_HID_CODE_NUM,
+};
 
 typedef struct __attribute__((packed)) {
     uint8_t report_id;
@@ -45,8 +55,47 @@ typedef struct __attribute__((packed)) {
         uint8_t consumer_code[2];
         uint16_t consumer_code16;
     };
-
 } my_consumer_report_t;
+
+typedef struct __attribute__((packed)) {
+    uint8_t report_id;
+    union {
+        uint8_t button_raw_value;
+        struct
+        {
+            uint8_t left_button : 1;
+            uint8_t right_button : 1;
+            uint8_t middle_button : 1;
+            uint8_t backward_button : 1;
+            uint8_t forward_button : 1;
+            uint8_t unused : 3;
+        };
+    };
+    int8_t x;
+    int8_t y;
+    int8_t wheel_vertical;
+    int8_t wheel_horizontal;
+} my_mouse_report_t;
+
+typedef struct __attribute__((packed)) {
+    uint8_t report_id;
+    union {
+        uint8_t button_raw_value;
+        struct
+        {
+            uint8_t left_button : 1;
+            uint8_t right_button : 1;
+            uint8_t middle_button : 1;
+            uint8_t backward_button : 1;
+            uint8_t forward_button : 1;
+            uint8_t unused : 3;
+        };
+    };
+    uint16_t x;
+    uint16_t y;
+    int8_t wheel_vertical;
+    int8_t wheel_horizontal;
+} my_absmouse_report_t;
 
 enum {
     EDPT_CTRL_OUT = 0x00,
@@ -56,7 +105,7 @@ enum {
     EDPT_IN_01 = 0x81,  // 1000 0001
 };
 
-#define MY_USBD_STR_DESC                   \
+#define MY_USBD_MSC_STR_DESC               \
     (char[]){0x09, 0x04},                  \
         "Espressif",   /*1: Manufacturer*/ \
         "TinyUSB MSC", /*2: Product*/      \

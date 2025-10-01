@@ -14,7 +14,7 @@ static uint8_t nvs_ok = 0;
 static uint8_t event_loop_ok = 0;
 RTC_DATA_ATTR static uint8_t get_mac_ok = 0;
 
-static const char *TAG = "my_init";
+// static const char *TAG = "my_init";
 
 void my_nvs_init(void)
 {
@@ -51,5 +51,6 @@ void my_get_chip_mac(void)
     ESP_ERROR_CHECK(ret);
     my_chip_mac16 = (my_chip_mac[4] << 8) | my_chip_mac[5];
     snprintf(my_chip_macstr_short, sizeof(my_chip_macstr_short), "%02x%02x", my_chip_mac[4], my_chip_mac[5]);
+    my_chip_macstr_short[sizeof(my_chip_macstr_short) - 1] = '\0';
     get_mac_ok = 1;
 }

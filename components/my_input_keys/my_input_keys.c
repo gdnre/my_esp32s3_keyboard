@@ -45,7 +45,7 @@ int64_t input_task_enter_time_us = 0;
 static my_matrix_keys_handle_t matrix_handle = NULL;
 static my_gpio_keys_handle_t gpio_handle = NULL;
 static my_encoder_keys_handle_t encoder_handle = NULL;
-int32_t long_pressed_time_us = 500000;
+int32_t long_pressed_time_us = 300000;
 
 my_input_base_event_cb_t my_input_base_event_cbs[MY_INPUT_EVENT_NUM] = {NULL};
 
@@ -67,6 +67,7 @@ int64_t my_input_get_last_active_time_us()
 uint8_t my_input_not_active_over(int64_t sleep_time_us)
 {
     if (!my_input_task_waiting) {
+        // 当输入任务还在运行时，不休眠
         return 0;
     }
     int64_t now = esp_timer_get_time();
@@ -117,13 +118,11 @@ uint8_t update_key_info(my_key_info_t *key, int8_t level)
 {
     int64_t now = esp_timer_get_time();
 
-    if (now - key->pressed_timer < MY_KEY_DEBOUNCE_US || now - key->released_timer < MY_KEY_DEBOUNCE_US) {// 按键消抖，之后考虑根据不同输入类型，设置不同的消抖时间
+    if (now - key->pressed_timer < MY_KEY_DEBOUNCE_US || now - key->released_timer < MY_KEY_DEBOUNCE_US) { // 按键消抖，之后考虑根据不同输入类型，设置不同的消抖时间
         *my_input_task_info.continue_cycle_ptr = 1;
         return 0;
     }
-
     uint8_t key_active = 0;
-    static uint8_t first_enter = 1;
     if (key->active_level == level) { // 按键按下
         key_active = 1;
         if (key->state == MY_KEY_IDLE) { // 按键之前是释放状态，需要改为按下状态，并记录按下时间，执行按下事件
@@ -280,7 +279,7 @@ void my_input_key_task(void *arg)
         continue_cycle += active_key_num;
         if (continue_cycle) {
             continue_cycle = 0;
-            vTaskDelay(pdMS_TO_TICKS(MY_KEY_SCAN_INTERVAL_MS)); // 每次检测间隔1ms，也有消抖作用，抖动小于1ms的不需要额外消抖
+            vTaskDelay(pdMS_TO_TICKS(MY_KEY_SCAN_INTERVAL_MS)); // 每次检测间隔1ms
         }
         else {                                            // key_active==0
             my_matrix_set_out_to_level(matrix_handle, 1); // 将输出端电平全部设置为触发电平

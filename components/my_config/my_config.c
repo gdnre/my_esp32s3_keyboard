@@ -49,8 +49,8 @@ my_nvs_cfg_t my_cfg_sleep_enable = {.name = "sleepEn", .size = 1, .is_ptr = 0, .
 my_nvs_cfg_t my_cfg_usb = {.name = "usb", .size = 1, .is_ptr = 0, .data.u8 = 0};
 my_nvs_cfg_t my_cfg_ble = {.name = "ble", .size = 1, .is_ptr = 0, .data.u8 = 0};
 my_nvs_cfg_t my_cfg_use_display = {.name = "display", .size = 1, .is_ptr = 0, .data.u8 = 1};
-my_nvs_cfg_t my_cfg_brightness = {.name = "brightness", .size = 1, .is_ptr = 0, .data.u8 = 100};
-my_nvs_cfg_t my_cfg_wifi_mode = {.name = "wifiMode", .size = 1, .is_ptr = 0, .data.u8 = 0};
+my_nvs_cfg_t my_cfg_brightness = {.name = "brightness", .size = 1, .is_ptr = 0, .data.u8 = 50};
+my_nvs_cfg_t my_cfg_wifi_mode = {.name = "wifiMode", .size = 1, .is_ptr = 0, .data.u8 = MY_WIFI_MODE_AP};
 my_nvs_cfg_t my_cfg_sleep_time = {.name = "sleepTime", .size = 2, .is_ptr = 0, .data.u16 = 1200};
 my_nvs_cfg_t my_cfg_sleep_enable = {.name = "sleepEn", .size = 1, .is_ptr = 0, .data.u8 = 1};
 #endif
@@ -60,7 +60,7 @@ my_nvs_cfg_t my_cfg_lvScrIndex = {.name = "lvScrIndex", .size = 1, .is_ptr = 0, 
 my_nvs_cfg_t my_cfg_led_brightness = {.name = "ledBri", .size = 1, .is_ptr = 0, .data.u8 = 50};
 my_nvs_cfg_t my_cfg_led_mode = {.name = "ledMode", .size = 1, .is_ptr = 0, .data.u8 = 0xff};
 my_nvs_cfg_t my_cfg_led_color = {.name = "ledColor", .size = 4, .is_ptr = 0, .data.u32 = 0xD08CFF};
-my_nvs_cfg_t my_cfg_led_temperature = {.name = "ledTemp", .size = 4, .is_ptr = 0, .data.u32 = 0xffffffff};// 不要用这个参数，保留备用
+my_nvs_cfg_t my_cfg_led_temperature = {.name = "ledTemp", .size = 4, .is_ptr = 0, .data.u32 = 0xffffffff}; // 不要用这个参数，保留备用
 my_nvs_cfg_t my_cfg_led_calibrate = {.name = "ledCali", .size = 4, .is_ptr = 0, .data.u32 = 0xFFB0F0};
 
 my_nvs_cfg_t *my_nvs_cfg_list_to_get[] = {&my_cfg_out_def_config, &my_cfg_usb, &my_cfg_ble, &my_cfg_use_display, &my_cfg_brightness, &my_cfg_wifi_mode, &my_cfg_sleep_time, &my_cfg_sleep_enable, &my_cfg_log_level, &my_cfg_lvScrIndex, &my_cfg_led_brightness, &my_cfg_led_mode, &my_cfg_led_color, &my_cfg_led_temperature, &my_cfg_led_calibrate, NULL};
@@ -292,7 +292,7 @@ void my_config_event_loop_init(void)
             .queue_size = 16,
             .task_name = "cfg_loop_task",
             .task_priority = 3,
-            .task_stack_size = 4096,
+            .task_stack_size = 5120,
             .task_core_id = 1,
         };
     ESP_ERROR_CHECK(esp_event_loop_create(&my_config_loop_args, &my_config_handle));
@@ -513,7 +513,6 @@ static int my_key_configs_json_obj_parse(cJSON *json_obj)
 
     if ((ioType_item && layer_item && keysArr) &&
         (cJSON_IsNumber(ioType_item) && cJSON_IsNumber(layer_item) && cJSON_IsArray(keysArr))) {
-
         uint8_t ioType = ioType_item->valueint;
         uint8_t layer = layer_item->valueint;
         if (ioType >= MY_INPUT_KEY_TYPE_BASE_AND_NUM || layer >= MY_TOTAL_LAYER) {
@@ -525,10 +524,10 @@ static int my_key_configs_json_obj_parse(cJSON *json_obj)
 
         cJSON *key_cfg_obj, *id_item, *type_item, *value_item;
         uint16_t id;
-        uint8_t type;
+        uint8_t type; // 按键值的类型
         my_kb_key_config_t *key_cfg = NULL;
 
-        for (size_t k = 0; k < arr_size; k++) {
+        for (size_t k = 0; k < arr_size; k++) { // 遍历配置中的按键数组
             key_cfg_obj = cJSON_GetArrayItem(keysArr, k);
             if (!key_cfg_obj) {
                 continue;
@@ -537,13 +536,16 @@ static int my_key_configs_json_obj_parse(cJSON *json_obj)
             type_item = cJSON_GetObjectItem(key_cfg_obj, "type");
             if ((!id_item || !type_item) ||
                 (!cJSON_IsNumber(id_item) || !cJSON_IsNumber(type_item))) {
+                // 如果不存在数字的id或type项，跳过
                 continue;
             }
             id = id_item->valueint;
             type = type_item->valueint;
             if (id > key_max_id || type >= MY_KEYCODE_TYPE_NUM) {
+                // 如果id大于最大按键数量或类型不对，跳过
                 continue;
             }
+            // 获取当前按键配置的位置
             key_cfg = &my_kb_keys_config[layer][ioType][id];
             switch (type) {
                 case MY_KEYCODE_NONE:
@@ -552,6 +554,7 @@ static int my_key_configs_json_obj_parse(cJSON *json_obj)
                 case MY_FN2_KEY:
                 case MY_FN_SWITCH_KEY:
                     if (key_cfg->type == type) {
+                        // 不需要值的类型，如果类型相同，就不用处理
                         continue;
                     }
                     key_cfg->type = type;
@@ -560,6 +563,7 @@ static int my_key_configs_json_obj_parse(cJSON *json_obj)
                     break;
                 case MY_KEYBOARD_CODE:
                 case MY_KEYBOARD_CHAR:
+                case MY_KEYCODE_MOUSE_BUTTON:
                     value_item = cJSON_GetObjectItem(key_cfg_obj, "value");
                     if (!value_item || !cJSON_IsNumber(value_item)) {
                         continue;
@@ -584,6 +588,36 @@ static int my_key_configs_json_obj_parse(cJSON *json_obj)
                     }
                     key_cfg->type = type;
                     key_cfg->code16 = value16;
+                    change_cfg_num++;
+                    break;
+                case MY_KEYCODE_MOUSE_X:
+                case MY_KEYCODE_MOUSE_Y:
+                case MY_KEYCODE_MOUSE_WHEEL_V:
+                case MY_KEYCODE_MOUSE_WHEEL_H:
+                    value_item = cJSON_GetObjectItem(key_cfg_obj, "value");
+                    if (!value_item || !cJSON_IsNumber(value_item)) {
+                        continue;
+                    }
+                    int8_t s_value8 = value_item->valueint;
+                    if (key_cfg->type == type && key_cfg->s_code8 == s_value8) {
+                        continue;
+                    }
+                    key_cfg->type = type;
+                    key_cfg->s_code8 = s_value8;
+                    change_cfg_num++;
+                    break;
+                case MY_KEYCODE_MOUSE_ABS_X:
+                case MY_KEYCODE_MOUSE_ABS_Y:
+                    value_item = cJSON_GetObjectItem(key_cfg_obj, "value");
+                    if (!value_item || !cJSON_IsNumber(value_item)) {
+                        continue;
+                    }
+                    int16_t s_value16 = value_item->valueint;
+                    if (key_cfg->type == type && key_cfg->s_code16 == s_value16) {
+                        continue;
+                    }
+                    key_cfg->type = type;
+                    key_cfg->s_code16 = s_value16;
                     change_cfg_num++;
                     break;
                 default:
@@ -888,6 +922,7 @@ static cJSON *my_key_config_to_json_obj(my_kb_key_config_t *cfg, uint16_t id)
             break;
         case MY_KEYBOARD_CODE:
         case MY_KEYBOARD_CHAR:
+        case MY_KEYCODE_MOUSE_BUTTON:
             if (!cJSON_AddNumberToObject(cfgObj, "value", cfg->code8)) {
                 goto fail_and_free;
             }
@@ -900,7 +935,22 @@ static cJSON *my_key_config_to_json_obj(my_kb_key_config_t *cfg, uint16_t id)
             }
             return cfgObj;
             break;
+        case MY_KEYCODE_MOUSE_X:
+        case MY_KEYCODE_MOUSE_Y:
+        case MY_KEYCODE_MOUSE_WHEEL_V:
+        case MY_KEYCODE_MOUSE_WHEEL_H:
+            if (!cJSON_AddNumberToObject(cfgObj, "value", cfg->s_code8)) {
+                goto fail_and_free;
+            }
+            return cfgObj;
+            break;
+        case MY_KEYCODE_MOUSE_ABS_X:
+        case MY_KEYCODE_MOUSE_ABS_Y:
         default:
+            if (!cJSON_AddNumberToObject(cfgObj, "value", cfg->s_code16)) {
+                goto fail_and_free;
+            }
+            return cfgObj;
             break;
     }
 fail_and_free:
