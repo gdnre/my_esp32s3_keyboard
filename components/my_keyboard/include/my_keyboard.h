@@ -112,4 +112,10 @@ void my_lvgl_key_state_event_handler(my_key_info_t *key_info, uint8_t key_presse
 // 仅限接收器使用的按键初始化程序
 esp_err_t my_receiver_key_init(void);
 
+// extern uint8_t my_kb_send_report_task_waiting;
 void my_kb_send_report_task(void *arg);
+
+/// @brief 检查键盘发送任务是否正在运行，且按键活动是否超过sleep_time_us，不包括等于
+/// @param sleep_time_us 传入的比较时间
+/// @return 返回0表示不能睡眠，1表示可以睡眠
+uint8_t my_keyboard_not_active_over(int64_t sleep_time_us);

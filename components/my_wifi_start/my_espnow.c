@@ -508,14 +508,18 @@ void my_espnow_fsm_general_send_handler(my_espnow_fsm_state_t enter_state, void 
         if (_retry <= 0) { // 如果没有收到ack
             _dev->continuous_send_fail++;
             if (need_check_online && send_buf.data.head.type == MY_ESPNOW_DATA_TYPE_I_AM_ONLINE) {
-                if (cur_time > last_get_dev_online_time + 1000000) { // 如果超过一定时间没有在线，情况按键报告，并设置为不用再检查
+                if (cur_time > last_get_dev_online_time + 1000000) { // 如果超过一定时间没有在线，清除按键报告，并设置为不用再检查
                     if (my_hid_remove_keycode_all(1, 1) > 0) {
                         my_hid_send_keyboard_report();
                         vTaskDelay(pdMS_TO_TICKS(2));
                     }
                     if (my_hid_add_consumer_code16(0) != MY_HID_NO_NEED_OPERATE) {
                         my_hid_send_consumer_report();
-                        vTaskDelay(pdMS_TO_TICKS(1));
+                        vTaskDelay(pdMS_TO_TICKS(2));
+                    }
+                    if (my_hid_report_remove_mouse_button_all(0) != MY_HID_NO_NEED_OPERATE) {
+                        my_usb_hid_send_report(my_mouse_report.report_id, &my_mouse_report.button_raw_value, my_mouse_report_size);
+                        vTaskDelay(pdMS_TO_TICKS(2));
                     }
                     need_check_online = false;
                 }
@@ -562,7 +566,7 @@ void my_espnow_fsm_general_recv_handler(my_espnow_fsm_state_t enter_state, void 
         }
         vTaskDelay(pdMS_TO_TICKS(1));
 #else
-        vTaskDelay(pdMS_TO_TICKS(2));
+        vTaskDelay(pdMS_TO_TICKS(1));
 #endif
         ret = my_espnow_wait_recv_data(&recv_buf, &b_ret, MY_WIFI_DELAY_MAX, 0);
         if (ret != ESP_OK)
@@ -580,9 +584,10 @@ void my_espnow_fsm_general_recv_handler(my_espnow_fsm_state_t enter_state, void 
                     mem_check_start = &recv_buf.data.payload[1];
                     report_len--;
                 }
-                else if (report_len == my_keyboard_report_size ||
-                         report_len == my_consumer_report_size + 1) {
-                    mem_check_start = recv_buf.data.payload;
+                else if (report_len == my_mouse_report_size + 1 ||
+                         report_len == my_absmouse_report_size + 1) {
+                    mem_check_start = &recv_buf.data.payload[1];
+                    report_len = sizeof(my_mouse_report.button_raw_value);
                 }
                 if (mem_check_start) {
                     bool is_empty = (memcmp(mem_check_start, empty_arr, report_len) == 0);
@@ -655,9 +660,8 @@ void my_espnow_recv_cb(const esp_now_recv_info_t *esp_now_info, const uint8_t *d
 {
     if (!my_espnow_handle || //! esp_now_info->src_addr ||
         (data_len < MY_ESPNOW_MIN_DATA_LEN) || (data_len > MY_ESPNOW_MAX_DATA_LEN) ||
-        (s_handle.fsm_state == MY_ESPNOW_FSM_BLOCK))
-    // 如果状态没有定义处理函数，不要将数据发送到队列，避免每次都阻塞
-    {
+        (s_handle.fsm_state == MY_ESPNOW_FSM_BLOCK)) {
+        // 如果状态没有定义处理函数，不要将数据发送到队列，避免每次都阻塞
         return;
     }
     my_espnow_data_t *data_p = (my_espnow_data_t *)data;

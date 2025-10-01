@@ -545,6 +545,7 @@ static BaseType_t my_kb_queue_pop_until_valid(QueueHandle_t handle, int64_t cur_
     return pdFALSE;
 }
 
+uint8_t my_kb_send_report_task_waiting = 0;
 void my_kb_send_report_task(void *arg)
 {
     if (!my_send_report_queue)
@@ -565,8 +566,10 @@ void my_kb_send_report_task(void *arg)
     BaseType_t p_ret;
     int64_t cycle_start_time_us;
     uint8_t any_report_send = 0;
+    my_kb_send_report_task_waiting = 1;
     for (;;) {
         p_ret = xQueueReceive(my_send_report_queue, &send_queue_data, queue_wait_time);
+        my_kb_send_report_task_waiting = 0;
         cycle_start_time_us = my_get_time();
         if (p_ret == pdTRUE) {
             // 如果从队列中获取到了数据，检查数据是否合法
@@ -672,6 +675,7 @@ void my_kb_send_report_task(void *arg)
         }
         else {
             queue_wait_time = portMAX_DELAY;
+            my_kb_send_report_task_waiting = 1;
         }
     } // end for
 
@@ -682,4 +686,12 @@ void my_kb_send_report_task(void *arg)
     vQueueDelete(ble_retry_queue);
     vQueueDelete(espnow_retry_queue);
     vTaskDelete(NULL);
+}
+
+uint8_t my_keyboard_not_active_over(int64_t sleep_time_us)
+{
+    if (!my_kb_send_report_task_waiting) {
+        return 0;
+    }
+    return my_input_not_active_over(sleep_time_us);
 }

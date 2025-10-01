@@ -443,7 +443,7 @@ void my_config_switch_event_handler(void *event_handler_arg, esp_event_base_t ev
 
                 if (my_cfg_sleep_enable.data.u8 && my_vbus_vol < 3300) {
                     uint64_t sleep_time = my_cfg_sleep_time.data.u16 * 1000000;
-                    if (my_input_not_active_over(sleep_time)) {
+                    if (my_keyboard_not_active_over(sleep_time)) {
                         my_deep_sleep_start();
                     }
                 }
