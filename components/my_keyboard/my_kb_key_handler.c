@@ -112,6 +112,22 @@ void my_kb_hid_report_add_key(my_kb_key_config_t *kb_cfg)
         case MY_KEYCODE_MOUSE_ABS_Y:
             set_mouse_value16(MY_MOUSE_VALUE_ABS_Y, kb_cfg->s_code16);
             break;
+        case MY_KEYCODE_COMBINE:
+            if (kb_cfg->code8 < my_combine_keys.key_num &&
+                my_combine_keys.key_arr_ptr &&
+                my_combine_keys.key_arr_ptr[kb_cfg->code8].code_num > 0 &&
+                my_combine_keys.key_arr_ptr[kb_cfg->code8].code_num < MY_COMBINE_KEYS_MAX_NUM) {
+                my_combine_key_t *ptr = &my_combine_keys.key_arr_ptr[kb_cfg->code8];
+                for (size_t i = 0; i < ptr->code_num; i++) {
+                    if (my_hid_add_keycode_raw(ptr->ucode8s[i]) == 1) {
+                        my_hid_report_change |= MY_KEYBOARD_REPORT_CHANGE;
+                    }
+                }
+            }
+            // else {
+            //     kb_cfg->type = MY_EMPTY_KEY;
+            // }
+            break;
         case MY_EMPTY_KEY:
         case MY_KEYCODE_NONE:
         default:
@@ -153,19 +169,19 @@ void my_kb_hid_report_remove_key(my_kb_key_config_t *kb_cfg)
                 my_hid_report_change |= MY_MOUSE_REPORT_CHANGE;
             }
             break;
-        // // 滚轮和相对鼠标位移每次发送后都应该清零，不需要有释放逻辑
-        // case MY_KEYCODE_MOUSE_X:
-        //     set_mouse_value8(MY_MOUSE_VALUE_X, 0);
-        //     break;
-        // case MY_KEYCODE_MOUSE_Y:
-        //     set_mouse_value8(MY_MOUSE_VALUE_Y, 0);
-        //     break;
-        // case MY_KEYCODE_MOUSE_WHEEL_V:
-        //     set_mouse_value8(MY_MOUSE_VALUE_WHEEL_V, 0);
-        //     break;
-        // case MY_KEYCODE_MOUSE_WHEEL_H:
-        //     set_mouse_value8(MY_MOUSE_VALUE_WHEEL_H, 0);
-        //     break;
+        case MY_KEYCODE_COMBINE:
+            if (kb_cfg->code8 < my_combine_keys.key_num &&
+                my_combine_keys.key_arr_ptr &&
+                my_combine_keys.key_arr_ptr[kb_cfg->code8].code_num > 0 &&
+                my_combine_keys.key_arr_ptr[kb_cfg->code8].code_num < MY_COMBINE_KEYS_MAX_NUM) {
+                my_combine_key_t *ptr = &my_combine_keys.key_arr_ptr[kb_cfg->code8];
+                for (size_t i = 0; i < ptr->code_num; i++) {
+                    if (my_hid_remove_keycode_raw(ptr->ucode8s[i]) == 1) {
+                        my_hid_report_change |= MY_KEYBOARD_REPORT_CHANGE;
+                    }
+                }
+            }
+            break;
         case MY_EMPTY_KEY:
         case MY_KEYCODE_NONE:
             break;
@@ -269,8 +285,9 @@ void my_keyboard_key_handler(my_key_info_t *key_info, uint8_t key_pressed)
     if (_cfg->type <= MY_EMPTY_KEY ||
         _cfg->type == MY_KEYCODE_MOUSE_BUTTON ||
         _cfg->type == MY_KEYCODE_MOUSE_ABS_X ||
-        _cfg->type == MY_KEYCODE_MOUSE_ABS_Y) {
-        // 键盘按键、鼠标按键、鼠标指针绝对位置
+        _cfg->type == MY_KEYCODE_MOUSE_ABS_Y ||
+        _cfg->type == MY_KEYCODE_COMBINE) {
+        // 键盘按键、鼠标按键、鼠标指针绝对位置，组合按键
         if (key_pressed) {
             my_kb_hid_report_add_key(_cfg);
         }

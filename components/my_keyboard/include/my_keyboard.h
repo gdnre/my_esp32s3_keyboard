@@ -2,7 +2,7 @@
 #include "esp_err.h"
 #include "my_input_base.h"
 
-// todo：改为通过一个报告结构体管理
+// todo：改为通过一个报告结构体管理，目前的实现不需要usb、蓝牙等连接类型报告改变的标识
 typedef enum {
     MY_USB_KEYBOARD_REPORT_CHANGE = (1 << 0),
     MY_BLE_KEYBOARD_REPORT_CHANGE = (1 << 1),
@@ -39,26 +39,28 @@ typedef enum {
     MY_KEYCODE_MOUSE_WHEEL_H, // 鼠标滚轮左右
     MY_KEYCODE_MOUSE_ABS_X,   // 鼠标指针x方向绝对位置，值为0-0x7fff，会按比例映射到屏幕
     MY_KEYCODE_MOUSE_ABS_Y,   // y方向绝对位置
+    MY_KEYCODE_COMBINE,       // 组合键，会同时按下，同时释放
     MY_KEYCODE_TYPE_NUM
-} my_keycode_type_t;
+} my_keycode_type_t; // 如果添加了新的按键类型，记得在下面的数组中补充名称字符串
 
-#define MY_KEYCODE_TYPE_STR_ARR {        \
-    "non",  /*MY_KEYCODE_NONE*/          \
-    " ",    /*MY_KEYBOARD_CODE*/         \
-    " ",    /*MY_KEYBOARD_CHAR*/         \
-    " ",    /*MY_CONSUMER_CODE*/         \
-    " ",    /*MY_EMPTY_KEY*/             \
-    "fn",   /*MY_FN_KEY*/                \
-    "fn2",  /*MY_FN2_KEY*/               \
-    "fns",  /*MY_FN_SWITCH_KEY*/         \
-    " ",    /*MY_ESP_CTRL_KEY*/          \
-    " ",    /*MY_KEYCODE_MOUSE_BUTTON*/  \
-    "mpx",  /*MY_KEYCODE_MOUSE_X*/       \
-    "mpy",  /*MY_KEYCODE_MOUSE_Y*/       \
-    "whv",  /*MY_KEYCODE_MOUSE_WHEEL_V*/ \
-    "whh",  /*MY_KEYCODE_MOUSE_WHEEL_H*/ \
-    " amx", /*MY_KEYCODE_MOUSE_ABS_X*/   \
-    "amy",  /*MY_KEYCODE_MOUSE_ABS_Y*/   \
+#define MY_KEYCODE_TYPE_STR_ARR {       \
+    "non", /*MY_KEYCODE_NONE*/          \
+    " ",   /*MY_KEYBOARD_CODE*/         \
+    " ",   /*MY_KEYBOARD_CHAR*/         \
+    " ",   /*MY_CONSUMER_CODE*/         \
+    " ",   /*MY_EMPTY_KEY*/             \
+    "fn",  /*MY_FN_KEY*/                \
+    "fn2", /*MY_FN2_KEY*/               \
+    "fns", /*MY_FN_SWITCH_KEY*/         \
+    " ",   /*MY_ESP_CTRL_KEY*/          \
+    " ",   /*MY_KEYCODE_MOUSE_BUTTON*/  \
+    "mpx", /*MY_KEYCODE_MOUSE_X*/       \
+    "mpy", /*MY_KEYCODE_MOUSE_Y*/       \
+    "whv", /*MY_KEYCODE_MOUSE_WHEEL_V*/ \
+    "whh", /*MY_KEYCODE_MOUSE_WHEEL_H*/ \
+    "amx", /*MY_KEYCODE_MOUSE_ABS_X*/   \
+    "amy", /*MY_KEYCODE_MOUSE_ABS_Y*/   \
+    "cmb", /*MY_KEYCODE_COMBINE*/       \
 }
 
 typedef enum {
@@ -68,8 +70,28 @@ typedef enum {
     MY_TOTAL_LAYER
 } my_fn_layer_t;
 
+#define MY_COMBINE_KEYS_MAX_NUM 8
+#define MY_COMBINE_KEYS_NAME_MAX_LEN 16
+
 typedef struct
 {
+    uint8_t code_num;
+    union {                                           // todo:统一其它类似的联合体中的成员名，以u作为无符号成员前缀
+        uint8_t ucode8s[2 * MY_COMBINE_KEYS_MAX_NUM]; // 只支持hid按键码，保留兼容其它按键码的内存
+        int16_t code16s[MY_COMBINE_KEYS_MAX_NUM];
+    };
+    char name[MY_COMBINE_KEYS_NAME_MAX_LEN];
+} my_combine_key_t;
+
+typedef struct
+{
+    uint8_t key_num;
+    my_combine_key_t *key_arr_ptr;
+} my_combine_keys_t;
+
+extern my_combine_keys_t my_combine_keys;
+
+typedef struct {
     uint8_t type;
     union {
         uint16_t code16;
@@ -81,9 +103,6 @@ typedef struct
 } __packed my_kb_key_config_t;
 
 extern uint8_t const my_ascii2keycode_arr[128][2];
-
-// extern int8_t my_cfg_use_usb_hid;
-// extern int8_t my_cfg_use_ble_hid;
 
 extern uint16_t my_hid_report_change;
 RTC_DATA_ATTR extern uint8_t _current_layer;

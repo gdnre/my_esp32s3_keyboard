@@ -564,6 +564,7 @@ static int my_key_configs_json_obj_parse(cJSON *json_obj)
                 case MY_KEYBOARD_CODE:
                 case MY_KEYBOARD_CHAR:
                 case MY_KEYCODE_MOUSE_BUTTON:
+                case MY_KEYCODE_COMBINE:
                     value_item = cJSON_GetObjectItem(key_cfg_obj, "value");
                     if (!value_item || !cJSON_IsNumber(value_item)) {
                         continue;
@@ -923,6 +924,7 @@ static cJSON *my_key_config_to_json_obj(my_kb_key_config_t *cfg, uint16_t id)
         case MY_KEYBOARD_CODE:
         case MY_KEYBOARD_CHAR:
         case MY_KEYCODE_MOUSE_BUTTON:
+        case MY_KEYCODE_COMBINE:
             if (!cJSON_AddNumberToObject(cfgObj, "value", cfg->code8)) {
                 goto fail_and_free;
             }

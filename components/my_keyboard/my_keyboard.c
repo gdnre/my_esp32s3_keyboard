@@ -14,7 +14,7 @@
 // #include "esp_lvgl_port.h"
 
 static const char *TAG = "my_keyboard";
-#pragma region // lvgl用变量
+#pragma region lvgl用变量
 char const *my_keycode_E0toE7_to_str_arr[8] = {
     "ctr",
     "shi",
@@ -51,7 +51,7 @@ char **encoder_key_str_map[MY_TOTAL_LAYER] = {_encoder_str_map_0, _encoder_str_m
 uint8_t my_fn_layer_num = MY_TOTAL_LAYER;
 #pragma endregion lvgl用变量
 
-#pragma region // 按键配置快捷宏
+#pragma region 按键配置快捷宏
 uint8_t const my_ascii2keycode_arr[128][2] = {HID_ASCII_TO_KEYCODE};
 uint8_t const my_keycode2ascii_arr[128][2] = {HID_KEYCODE_TO_ASCII};
 #define ASCII_TO_HID_KEYCODE(x) (my_ascii2keycode_arr[(uint8_t)(x)][1])
@@ -101,7 +101,26 @@ uint8_t const my_keycode2ascii_arr[128][2] = {HID_KEYCODE_TO_ASCII};
 #define MY_MOUSE_BTN_FORWARD_CFG MY_MOUSE_BUTTON_CFG(MY_MOUSE_BUTTON_HID_CODE_FORWARD)
 #pragma endregion 按键配置快捷宏
 
-#pragma region // 键盘按键配置
+#pragma region 组合键和宏按键配置
+my_combine_key_t my_default_combine_key_arr[] = {
+    {.code_num = 2, .ucode8s = {HID_KEY_CONTROL_LEFT, HID_KEY_C}, .name = "ctrl+c"},
+    {.code_num = 2, .ucode8s = {HID_KEY_CONTROL_LEFT, HID_KEY_V}, .name = "ctrl+v"},
+    {.code_num = 2, .ucode8s = {HID_KEY_CONTROL_LEFT, HID_KEY_X}, .name = "ctrl+x"},
+    {.code_num = 2, .ucode8s = {HID_KEY_CONTROL_LEFT, HID_KEY_Z}, .name = "ctrl+z"},
+    {.code_num = 2, .ucode8s = {HID_KEY_CONTROL_LEFT, HID_KEY_S}, .name = "ctrl+s"},
+    {.code_num = 2, .ucode8s = {HID_KEY_CONTROL_LEFT, HID_KEY_A}, .name = "ctrl+a"},
+    {.code_num = 2, .ucode8s = {HID_KEY_ALT_LEFT, HID_KEY_TAB}, .name = "alt+tab"},
+    {.code_num = 2, .ucode8s = {HID_KEY_ALT_LEFT, HID_KEY_F4}, .name = "alt+f4"},
+    {.code_num = 2, .ucode8s = {HID_KEY_GUI_LEFT, HID_KEY_D}, .name = "win+d"},
+    {.code_num = 2, .ucode8s = {HID_KEY_GUI_LEFT, HID_KEY_L}, .name = "win+l"},
+};
+my_combine_keys_t my_combine_keys = {
+    .key_num = sizeof(my_default_combine_key_arr) / sizeof(my_default_combine_key_arr[0]),
+    .key_arr_ptr = my_default_combine_key_arr,
+};
+#pragma endregion
+
+#pragma region 键盘按键配置
 RTC_DATA_ATTR static my_kb_key_config_t _config_gpio_keys_0[1];
 RTC_DATA_ATTR static my_kb_key_config_t _config_gpio_keys_1[1];
 RTC_DATA_ATTR static my_kb_key_config_t _config_gpio_keys_2[1];

@@ -31,7 +31,8 @@ const KEY_CONFIG_SCHEMA = {
         12: { name: "鼠标滚轮上下", hasValue: true, valueType: "valueRange127" },
         13: { name: "鼠标滚轮左右", hasValue: true, valueType: "valueRange127" },
         14: { name: "鼠标指针x方向绝对位置", hasValue: true, valueType: "valueRange0x7fff" },
-        15: { name: "鼠标指针y方向绝对位置", hasValue: true, valueType: "valueRange0x7fff" }
+        15: { name: "鼠标指针y方向绝对位置", hasValue: true, valueType: "valueRange0x7fff" },
+        16: { name: "组合键", hasValue: true, valueType: "defaultCombineKeys" }
     },
 
     valueLabels: {
@@ -329,12 +330,28 @@ const KEY_CONFIG_SCHEMA = {
         },
         valueRange127: {
             [-127]: "-127最小值",
+            [-5]: "建议值：指针左/上",
+            [-1]: "建议值：滚轮下/左",
             0: "0",
+            1: "建议值：滚轮上/右",
+            5: "建议值：指针右/下",
             127: "127最大值"
         },
         valueRange0x7fff: {
             0: "0最小值",
             32767: "32767最大值"
+        },
+        defaultCombineKeys: {
+            0: "ctrl+c：复制",
+            1: "ctrl+v：粘贴",
+            2: "ctrl+x：剪切",
+            3: "ctrl+z：撤销",
+            4: "ctrl+s：保存",
+            5: "ctrl+a：全选",
+            6: "alt+tab：切换窗口",
+            7: "alt+f4：关闭窗口",
+            8: "win+d：显示桌面",
+            9: "win+l：锁屏",
         }
     }
 };
